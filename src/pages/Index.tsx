@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import SwipeableStack from "@/components/SwipeableStack";
 import ResultsModal from "@/components/ResultsModal";
-import BundleModal from "@/components/BundleModal";
 import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { Heart, X, RotateCcw, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
@@ -14,66 +13,33 @@ const Index = () => {
   const { t } = useTranslation();
   const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [showBundleModal, setShowBundleModal] = useState(false);
   const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
-  const [swipeCount, setSwipeCount] = useState(0);
-  const [bundleLikedPetitions, setBundleLikedPetitions] = useState<Petition[]>([]);
 
   // Update currentPetitions when data is loaded
   React.useEffect(() => {
     if (allPetitions.length > 0 && currentPetitions.length === 0) {
-      setCurrentPetitions(allPetitions.slice(0, 10));
+      setCurrentPetitions(allPetitions);
     }
   }, [allPetitions, currentPetitions.length]);
 
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     if (direction === 'right') {
       setLikedPetitions(prev => [...prev, petition]);
-      setBundleLikedPetitions(prev => [...prev, petition]);
     }
     
     // Remove the swiped petition from current stack
     setCurrentPetitions(prev => prev.filter(p => p.id !== petition.id));
     
-    const newSwipeCount = swipeCount + 1;
-    setSwipeCount(newSwipeCount);
-    
-    // Check if we've swiped 10 times or no more petitions in current bundle
-    if (newSwipeCount >= 10 || currentPetitions.length === 1) {
-      setTimeout(() => setShowBundleModal(true), 500);
+    // If no more petitions, show results
+    if (currentPetitions.length === 1) {
+      setTimeout(() => setShowResults(true), 500);
     }
-  };
-
-  const getNextBundle = () => {
-    const startIndex = Math.floor(likedPetitions.length / 10) * 10 + swipeCount;
-    const nextBatch = allPetitions.slice(startIndex, startIndex + 10);
-    
-    if (nextBatch.length > 0) {
-      setCurrentPetitions(nextBatch);
-      setSwipeCount(0);
-      setBundleLikedPetitions([]);
-      setShowBundleModal(false);
-    } else {
-      // If no more petitions, restart from beginning
-      setCurrentPetitions(allPetitions.slice(0, 10));
-      setSwipeCount(0);
-      setBundleLikedPetitions([]);
-      setShowBundleModal(false);
-    }
-  };
-
-  const reviewBundleLiked = () => {
-    setShowBundleModal(false);
-    setShowResults(true);
   };
 
   const resetStack = () => {
-    setCurrentPetitions(allPetitions.slice(0, 10));
+    setCurrentPetitions(allPetitions);
     setLikedPetitions([]);
-    setBundleLikedPetitions([]);
     setShowResults(false);
-    setShowBundleModal(false);
-    setSwipeCount(0);
   };
 
   if (isLoading) {
@@ -126,9 +92,6 @@ const Index = () => {
             {t('app.title')}
           </h1>
           <p className="text-gray-600">{t('app.subtitle')}</p>
-          <p className="text-sm text-gray-500 mt-2">
-            {swipeCount}/10 swipes in this bundle
-          </p>
         </div>
 
         <div className="flex justify-center mb-6">
@@ -184,14 +147,6 @@ const Index = () => {
             </div>
           </div>
         )}
-
-        <BundleModal 
-          open={showBundleModal}
-          onOpenChange={setShowBundleModal}
-          bundleLikedPetitions={bundleLikedPetitions}
-          onGetNextBundle={getNextBundle}
-          onReviewLiked={reviewBundleLiked}
-        />
 
         <ResultsModal 
           open={showResults}

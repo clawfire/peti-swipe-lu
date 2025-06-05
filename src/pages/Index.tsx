@@ -134,7 +134,7 @@ const Index = () => {
         )}
 
         {likedPetitions.length > 0 && (
-          <div className="fixed bottom-6 right-6">
+          <div className="fixed bottom-6 right-6 z-30">
             <Button 
               onClick={() => setShowResults(true)}
               className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-full w-14 h-14 shadow-lg"

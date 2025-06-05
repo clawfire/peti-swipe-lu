@@ -64,17 +64,24 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     const interactiveSelectors = [
       'button',
       '[role="button"]',
+      '[role="dialog"]',
       'a',
       'input',
       'textarea',
       'select',
-      '.pointer-events-auto'
+      '.pointer-events-auto',
+      '[data-radix-dialog-content]',
+      '[data-radix-dialog-overlay]'
     ];
     
     return interactiveSelectors.some(selector => 
       element.matches?.(selector) || element.closest?.(selector)
     );
   };
+
+  const isModalOpen = useCallback(() => {
+    return document.querySelector('[data-radix-dialog-content]') !== null;
+  }, []);
 
   const updateCardTransform = useCallback((x: number, y: number, immediate = false) => {
     if (!cardRef.current) return;
@@ -112,6 +119,11 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Don't start swipe if modal is open
+    if (isModalOpen()) {
+      return;
+    }
+
     // Check if the pointer started on an interactive element
     if (isInteractiveElement(e.target as Element)) {
       console.log('Pointer down on interactive element, ignoring swipe');
@@ -143,10 +155,10 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     
     // Add will-change for optimization
     cardRef.current.style.willChange = 'transform';
-  }, []);
+  }, [isModalOpen]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragState.isDragging || !cachedRect.current) return;
+    if (!dragState.isDragging || !cachedRect.current || isModalOpen()) return;
 
     e.preventDefault();
     
@@ -172,10 +184,10 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     }));
 
     updateCardTransform(deltaX, deltaY);
-  }, [dragState.isDragging, dragState.lastTimestamp, dragState.startX, dragState.startY, updateCardTransform]);
+  }, [dragState.isDragging, dragState.lastTimestamp, dragState.startX, dragState.startY, updateCardTransform, isModalOpen]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (!dragState.isDragging || !cardRef.current) return;
+    if (!dragState.isDragging || !cardRef.current || isModalOpen()) return;
 
     e.preventDefault();
     
@@ -233,7 +245,7 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
         }
       }, 400);
     }
-  }, [dragState, currentPetition, onSwipe]);
+  }, [dragState, currentPetition, onSwipe, isModalOpen]);
 
   // Cleanup animation frame on unmount
   useLayoutEffect(() => {

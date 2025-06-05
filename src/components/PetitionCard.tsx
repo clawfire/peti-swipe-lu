@@ -1,7 +1,6 @@
 
 import { Calendar, Users, Flame, Building2, Target, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { fr, enUS, de } from "date-fns/locale";
@@ -38,31 +37,11 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'SIGNATURE_EN_COURS':
-        return 'bg-blue-100 text-green-800';
-      case 'SEUIL_ATTEINT':
-        return 'bg-green-100 text-blue-800';
-      case 'CLOTUREE':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    return t(`status.${status}`) || status;
-  };
-
   return (
     <Card className="w-80 min-h-[500px] max-h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
       <div className="p-6 h-full flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-4">
-          <Badge className={getStatusColor(petition.status)}>
-            {getStatusText(petition.status)}
-          </Badge>
+        {/* Header - removed status badge */}
+        <div className="flex justify-end items-start mb-4">
           <span className="text-sm text-gray-500">#{petition.petition_nbr}</span>
         </div>
 
@@ -110,8 +89,12 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowFullMotivation(!showFullMotivation)}
-                  className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-800"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowFullMotivation(!showFullMotivation);
+                  }}
+                  className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-800 hover:bg-transparent"
                 >
                   {showFullMotivation ? (
                     <>

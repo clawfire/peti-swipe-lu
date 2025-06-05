@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { usePetitions } from "@/hooks/usePetitions";
 import SwipeableStack from "@/components/SwipeableStack";
@@ -13,7 +13,7 @@ const Index = () => {
   const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
 
   // Update current petitions when data loads
-  useState(() => {
+  useEffect(() => {
     if (petitions) {
       setCurrentPetitions(petitions);
     }

@@ -3,21 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Heart, RotateCcw, Users } from "lucide-react";
-
-interface Petition {
-  PETITION_NBR: number;
-  FILING_DATE: string;
-  OFFICIAL_TITLE: string;
-  TYPE: string;
-  STATUS: string;
-  ASSOCIATION_ROLE?: string | null;
-  ASSOCIATION_NAME?: string | null;
-  RESIDENCY_COUNTRY: string;
-  GOAL?: string | null;
-  SIGN_NBR_ELECTRONIC?: number | null;
-  SIGN_NBR_PAPER?: number | null;
-  MOTIVATION?: string | null;
-}
+import { Petition } from "@/types/petition";
 
 interface ResultsModalProps {
   open: boolean;
@@ -62,22 +48,22 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {likedPetitions.map((petition) => {
-                const totalSignatures = (petition.SIGN_NBR_ELECTRONIC || 0) + (petition.SIGN_NBR_PAPER || 0);
+                const totalSignatures = (petition.sign_nbr_electronic || 0) + (petition.sign_nbr_paper || 0);
                 
                 return (
-                  <div key={petition.PETITION_NBR} className="border rounded-lg p-4 bg-gradient-to-r from-pink-50 to-purple-50">
+                  <div key={petition.id} className="border rounded-lg p-4 bg-gradient-to-r from-pink-50 to-purple-50">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-lg line-clamp-2 flex-1">
-                        {petition.OFFICIAL_TITLE}
+                        {petition.official_title}
                       </h3>
                       <Badge variant="outline" className="ml-2">
-                        #{petition.PETITION_NBR}
+                        #{petition.petition_nbr}
                       </Badge>
                     </div>
                     
-                    {petition.GOAL && (
+                    {petition.goal && (
                       <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                        {petition.GOAL}
+                        {petition.goal}
                       </p>
                     )}
                     
@@ -88,7 +74,7 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
                       </div>
                       
                       <Button 
-                        onClick={() => handleSignPetition(petition.PETITION_NBR)}
+                        onClick={() => handleSignPetition(petition.petition_nbr)}
                         className="bg-gradient-to-r from-pink-500 to-purple-600"
                         size="sm"
                       >

@@ -6,21 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useState } from "react";
-
-interface Petition {
-  PETITION_NBR: number;
-  FILING_DATE: string;
-  OFFICIAL_TITLE: string;
-  TYPE: string;
-  STATUS: string;
-  ASSOCIATION_ROLE?: string | null;
-  ASSOCIATION_NAME?: string | null;
-  RESIDENCY_COUNTRY: string;
-  GOAL?: string | null;
-  SIGN_NBR_ELECTRONIC?: number | null;
-  SIGN_NBR_PAPER?: number | null;
-  MOTIVATION?: string | null;
-}
+import { Petition } from "@/types/petition";
 
 interface PetitionCardProps {
   petition: Petition;
@@ -28,7 +14,7 @@ interface PetitionCardProps {
 
 const PetitionCard = ({ petition }: PetitionCardProps) => {
   const [showFullMotivation, setShowFullMotivation] = useState(false);
-  const totalSignatures = (petition.SIGN_NBR_ELECTRONIC || 0) + (petition.SIGN_NBR_PAPER || 0);
+  const totalSignatures = (petition.sign_nbr_electronic || 0) + (petition.sign_nbr_paper || 0);
   const hotMeterPercentage = Math.min((totalSignatures / 5500) * 100, 100);
   
   const formatDate = (dateString: string) => {
@@ -73,53 +59,53 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
       <div className="p-6 h-full flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
-          <Badge className={getStatusColor(petition.STATUS)}>
-            {getStatusText(petition.STATUS)}
+          <Badge className={getStatusColor(petition.status)}>
+            {getStatusText(petition.status)}
           </Badge>
-          <span className="text-sm text-gray-500">#{petition.PETITION_NBR}</span>
+          <span className="text-sm text-gray-500">#{petition.petition_nbr}</span>
         </div>
 
         {/* Title - Removed line-clamp to prevent cutoff */}
         <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
-          {petition.OFFICIAL_TITLE}
+          {petition.official_title}
         </h2>
 
         {/* Goal */}
-        {petition.GOAL && (
+        {petition.goal && (
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium text-gray-700">Objectif</span>
             </div>
-            <p className="text-sm text-gray-600 line-clamp-2">{petition.GOAL}</p>
+            <p className="text-sm text-gray-600 line-clamp-2">{petition.goal}</p>
           </div>
         )}
 
         {/* Association */}
-        {petition.ASSOCIATION_NAME && (
+        {petition.association_name && (
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-1">
               <Building2 className="w-4 h-4 text-purple-600" />
               <span className="text-sm font-medium text-gray-700">Organisation</span>
             </div>
             <p className="text-sm text-gray-600">
-              {petition.ASSOCIATION_NAME}
-              {petition.ASSOCIATION_ROLE && ` (${petition.ASSOCIATION_ROLE})`}
+              {petition.association_name}
+              {petition.association_role && ` (${petition.association_role})`}
             </p>
           </div>
         )}
 
         {/* Motivation with show more functionality */}
-        {petition.MOTIVATION && (
+        {petition.motivation && (
           <div className="mb-4 flex-1 overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium text-gray-700">Motivation</span>
             </div>
             <div className="relative">
               <p className={`text-sm text-gray-600 ${showFullMotivation ? '' : 'line-clamp-3'}`}>
-                {petition.MOTIVATION}
+                {petition.motivation}
               </p>
-              {petition.MOTIVATION.length > 150 && (
+              {petition.motivation.length > 150 && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -168,16 +154,16 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           </div>
           <div className="text-2xl font-bold text-green-600">{totalSignatures.toLocaleString()}</div>
           <div className="text-xs text-gray-500">
-            {petition.SIGN_NBR_ELECTRONIC && `${petition.SIGN_NBR_ELECTRONIC} électroniques`}
-            {petition.SIGN_NBR_ELECTRONIC && petition.SIGN_NBR_PAPER && ' • '}
-            {petition.SIGN_NBR_PAPER && `${petition.SIGN_NBR_PAPER} papier`}
+            {petition.sign_nbr_electronic && `${petition.sign_nbr_electronic} électroniques`}
+            {petition.sign_nbr_electronic && petition.sign_nbr_paper && ' • '}
+            {petition.sign_nbr_paper && `${petition.sign_nbr_paper} papier`}
           </div>
         </div>
 
         {/* Date */}
         <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
           <Calendar className="w-4 h-4" />
-          <span>Déposée {formatDate(petition.FILING_DATE)}</span>
+          <span>Déposée {formatDate(petition.filing_date)}</span>
         </div>
       </div>
     </Card>

@@ -1,21 +1,6 @@
-
 import { useState, useRef } from "react";
 import PetitionCard from "./PetitionCard";
-
-interface Petition {
-  PETITION_NBR: number;
-  FILING_DATE: string;
-  OFFICIAL_TITLE: string;
-  TYPE: string;
-  STATUS: string;
-  ASSOCIATION_ROLE?: string | null;
-  ASSOCIATION_NAME?: string | null;
-  RESIDENCY_COUNTRY: string;
-  GOAL?: string | null;
-  SIGN_NBR_ELECTRONIC?: number | null;
-  SIGN_NBR_PAPER?: number | null;
-  MOTIVATION?: string | null;
-}
+import { Petition } from "@/types/petition";
 
 interface SwipeableStackProps {
   petitions: Petition[];

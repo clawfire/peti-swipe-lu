@@ -9,7 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      petitions: {
+        Row: {
+          association_name: string | null
+          association_role: string | null
+          created_at: string
+          filing_date: string
+          goal: string | null
+          id: string
+          motivation: string | null
+          official_title: string
+          petition_nbr: number
+          residency_country: string
+          sign_nbr_electronic: number | null
+          sign_nbr_paper: number | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          association_name?: string | null
+          association_role?: string | null
+          created_at?: string
+          filing_date: string
+          goal?: string | null
+          id?: string
+          motivation?: string | null
+          official_title: string
+          petition_nbr: number
+          residency_country: string
+          sign_nbr_electronic?: number | null
+          sign_nbr_paper?: number | null
+          status: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          association_name?: string | null
+          association_role?: string | null
+          created_at?: string
+          filing_date?: string
+          goal?: string | null
+          id?: string
+          motivation?: string | null
+          official_title?: string
+          petition_nbr?: number
+          residency_country?: string
+          sign_nbr_electronic?: number | null
+          sign_nbr_paper?: number | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

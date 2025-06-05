@@ -3,94 +3,30 @@ import { useState } from "react";
 import SwipeableStack from "@/components/SwipeableStack";
 import ResultsModal from "@/components/ResultsModal";
 import { Button } from "@/components/ui/button";
-import { Heart, X, RotateCcw } from "lucide-react";
-
-// Mock petition data following the schema
-const mockPetitions = [
-  {
-    PETITION_NBR: 1234,
-    FILING_DATE: "2024-01-15",
-    OFFICIAL_TITLE: "Pour une meilleure protection de l'environnement urbain",
-    TYPE: "PUB",
-    STATUS: "SIGNATURE_EN_COURS",
-    ASSOCIATION_ROLE: "Président",
-    ASSOCIATION_NAME: "EcoLux",
-    RESIDENCY_COUNTRY: "Luxembourg",
-    GOAL: "Création de plus d'espaces verts dans la ville et réduction de la pollution",
-    SIGN_NBR_ELECTRONIC: 2340,
-    SIGN_NBR_PAPER: 156,
-    MOTIVATION: "Face à l'urbanisation croissante et aux défis climatiques, il est urgent d'agir pour préserver notre environnement urbain. Cette pétition vise à sensibiliser et mobiliser pour des actions concrètes."
-  },
-  {
-    PETITION_NBR: 1235,
-    FILING_DATE: "2024-02-20",
-    OFFICIAL_TITLE: "Amélioration des transports publics",
-    TYPE: "PUB",
-    STATUS: "SIGNATURE_EN_COURS",
-    ASSOCIATION_ROLE: null,
-    ASSOCIATION_NAME: null,
-    RESIDENCY_COUNTRY: "Luxembourg",
-    GOAL: "Développer un réseau de transport plus efficace et accessible",
-    SIGN_NBR_ELECTRONIC: 4200,
-    SIGN_NBR_PAPER: 89,
-    MOTIVATION: "Les transports publics actuels ne répondent pas aux besoins de la population grandissante. Il faut investir dans des solutions durables et modernes."
-  },
-  {
-    PETITION_NBR: 1236,
-    FILING_DATE: "2024-03-10",
-    OFFICIAL_TITLE: "Soutien aux petites entreprises locales",
-    TYPE: "PUB",
-    STATUS: "SIGNATURE_EN_COURS",
-    ASSOCIATION_ROLE: "Directeur",
-    ASSOCIATION_NAME: "Commerce Local Uni",
-    RESIDENCY_COUNTRY: "Luxembourg",
-    GOAL: "Créer des mesures de soutien fiscal pour les petites entreprises",
-    SIGN_NBR_ELECTRONIC: 1800,
-    SIGN_NBR_PAPER: 245,
-    MOTIVATION: "Les petites entreprises sont le cœur de notre économie locale. Elles ont besoin de soutien pour survivre face à la concurrence des grandes chaînes."
-  },
-  {
-    PETITION_NBR: 1237,
-    FILING_DATE: "2024-04-05",
-    OFFICIAL_TITLE: "Renforcement de la sécurité dans les écoles",
-    TYPE: "PUB",
-    STATUS: "SIGNATURE_EN_COURS",
-    ASSOCIATION_ROLE: null,
-    ASSOCIATION_NAME: null,
-    RESIDENCY_COUNTRY: "Luxembourg",
-    GOAL: "Mettre en place des mesures de sécurité renforcées dans tous les établissements scolaires",
-    SIGN_NBR_ELECTRONIC: 3650,
-    SIGN_NBR_PAPER: 312,
-    MOTIVATION: "La sécurité de nos enfants est primordiale. Il est nécessaire d'investir dans des équipements et formations pour garantir un environnement scolaire sûr."
-  },
-  {
-    PETITION_NBR: 1238,
-    FILING_DATE: "2024-05-15",
-    OFFICIAL_TITLE: "Digitalisation des services administratifs",
-    TYPE: "PUB",
-    STATUS: "SIGNATURE_EN_COURS",
-    ASSOCIATION_ROLE: "Secrétaire",
-    ASSOCIATION_NAME: "CitoyensConnectés",
-    RESIDENCY_COUNTRY: "Luxembourg",
-    GOAL: "Accélérer la transformation numérique de l'administration publique",
-    SIGN_NBR_ELECTRONIC: 892,
-    SIGN_NBR_PAPER: 45,
-    MOTIVATION: "L'administration doit se moderniser pour offrir des services plus rapides et accessibles aux citoyens. La digitalisation est un enjeu majeur pour l'efficacité publique."
-  }
-];
+import { Heart, X, RotateCcw, Loader2 } from "lucide-react";
+import { usePetitions } from "@/hooks/usePetitions";
+import { Petition } from "@/types/petition";
 
 const Index = () => {
-  const [likedPetitions, setLikedPetitions] = useState<typeof mockPetitions>([]);
+  const { data: allPetitions = [], isLoading, error } = usePetitions();
+  const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [currentPetitions, setCurrentPetitions] = useState(mockPetitions);
+  const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
 
-  const handleSwipe = (petition: typeof mockPetitions[0], direction: 'left' | 'right') => {
+  // Update currentPetitions when data is loaded
+  React.useEffect(() => {
+    if (allPetitions.length > 0 && currentPetitions.length === 0) {
+      setCurrentPetitions(allPetitions);
+    }
+  }, [allPetitions, currentPetitions.length]);
+
+  const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     if (direction === 'right') {
       setLikedPetitions(prev => [...prev, petition]);
     }
     
     // Remove the swiped petition from current stack
-    setCurrentPetitions(prev => prev.filter(p => p.PETITION_NBR !== petition.PETITION_NBR));
+    setCurrentPetitions(prev => prev.filter(p => p.id !== petition.id));
     
     // If no more petitions, show results
     if (currentPetitions.length === 1) {
@@ -99,10 +35,47 @@ const Index = () => {
   };
 
   const resetStack = () => {
-    setCurrentPetitions(mockPetitions);
+    setCurrentPetitions(allPetitions);
     setLikedPetitions([]);
     setShowResults(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600">Chargement des pétitions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Erreur lors du chargement des pétitions</p>
+          <Button onClick={() => window.location.reload()}>
+            Réessayer
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (allPetitions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Aucune pétition trouvée</p>
+          <p className="text-sm text-gray-500">
+            Importez vos données de pétitions dans Supabase pour commencer
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100">

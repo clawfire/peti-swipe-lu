@@ -50,17 +50,125 @@ const parseCsvLine = (line: string): string[] => {
 };
 
 const parseDate = (dateStr: string): string => {
+  if (!dateStr || dateStr.trim() === '') {
+    return '';
+  }
+  
   // Handle DD/MM/YYYY format
   if (dateStr.includes('/')) {
     const [day, month, year] = dateStr.split('/');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    if (day && month && year && !isNaN(Number(day)) && !isNaN(Number(month)) && !isNaN(Number(year))) {
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
   }
+  
   // Handle YYYY-MM-DD format
-  return dateStr;
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateStr;
+  }
+  
+  return '';
+};
+
+const parseNumber = (numStr: string): number => {
+  if (!numStr || numStr.trim() === '' || numStr.toLowerCase() === 'null' || numStr.toLowerCase() === 'undefined') {
+    return 0;
+  }
+  
+  const cleaned = numStr.replace(/[^\d.-]/g, '');
+  const parsed = parseInt(cleaned, 10);
+  
+  return isNaN(parsed) ? 0 : Math.max(0, parsed);
 };
 
 const cleanText = (text: string): string => {
+  if (!text) return '';
   return text.replace(/^["']|["']$/g, '').trim();
+};
+
+const isValidText = (text: string): boolean => {
+  return text && text.trim().length > 0 && text.toLowerCase() !== 'null' && text.toLowerCase() !== 'undefined';
+};
+
+const mapCsvToPetition = (values: string[], headers: string[], rowIndex: number): PetitionData | null => {
+  try {
+    // Find column indices
+    const getColumnValue = (columnName: string): string => {
+      const index = headers.indexOf(columnName);
+      return index >= 0 && index < values.length ? cleanText(values[index]) : '';
+    };
+
+    // Extract and clean values
+    const petitionNbrStr = getColumnValue('petition_nbr') || getColumnValue('numéro de pétition') || values[0] || '';
+    const filingDateStr = getColumnValue('filing_date') || getColumnValue('date de dépôt') || values[1] || '';
+    const officialTitle = getColumnValue('official_title') || getColumnValue('titre officiel') || values[2] || '';
+    const type = getColumnValue('type') || values[3] || '';
+    const status = getColumnValue('status') || getColumnValue('statut') || values[4] || '';
+    const associationRole = getColumnValue('association_role') || getColumnValue('rôle de l\'association') || values[5] || '';
+    const associationName = getColumnValue('association_name') || getColumnValue('nom de l\'association') || values[6] || '';
+    const residencyCountry = getColumnValue('residency_country') || getColumnValue('pays de résidence') || values[7] || '';
+    const goal = getColumnValue('goal') || getColumnValue('objet') || values[8] || '';
+    const signElectronicStr = getColumnValue('sign_nbr_electronic') || getColumnValue('nombre de signatures électroniques') || values[9] || '0';
+    const signPaperStr = getColumnValue('sign_nbr_paper') || getColumnValue('nombre de signatures papier') || values[10] || '0';
+    const motivation = getColumnValue('motivation') || values[11] || '';
+
+    // Validate required fields
+    if (!isValidText(officialTitle)) {
+      console.warn(`Row ${rowIndex}: Missing or invalid official_title: "${officialTitle}"`);
+      return null;
+    }
+
+    const parsedDate = parseDate(filingDateStr);
+    if (!parsedDate) {
+      console.warn(`Row ${rowIndex}: Missing or invalid filing_date: "${filingDateStr}"`);
+      return null;
+    }
+
+    if (!isValidText(residencyCountry)) {
+      console.warn(`Row ${rowIndex}: Missing or invalid residency_country: "${residencyCountry}"`);
+      return null;
+    }
+
+    if (!isValidText(type)) {
+      console.warn(`Row ${rowIndex}: Missing or invalid type: "${type}"`);
+      return null;
+    }
+
+    if (!isValidText(status)) {
+      console.warn(`Row ${rowIndex}: Missing or invalid status: "${status}"`);
+      return null;
+    }
+
+    // Parse petition number
+    const petitionNbr = parseNumber(petitionNbrStr);
+    if (petitionNbr === 0) {
+      console.warn(`Row ${rowIndex}: Invalid petition_nbr: "${petitionNbrStr}"`);
+      return null;
+    }
+
+    // Build the petition object
+    const petition: PetitionData = {
+      petition_nbr: petitionNbr,
+      filing_date: parsedDate,
+      official_title: officialTitle,
+      type: type,
+      status: status,
+      association_role: isValidText(associationRole) ? associationRole : null,
+      association_name: isValidText(associationName) ? associationName : null,
+      residency_country: residencyCountry,
+      goal: isValidText(goal) ? goal : null,
+      sign_nbr_electronic: parseNumber(signElectronicStr),
+      sign_nbr_paper: parseNumber(signPaperStr),
+      motivation: isValidText(motivation) ? motivation : null,
+    };
+
+    console.log(`Row ${rowIndex}: Successfully parsed petition ${petition.petition_nbr}`);
+    return petition;
+
+  } catch (error) {
+    console.error(`Row ${rowIndex}: Parsing error:`, error);
+    return null;
+  }
 };
 
 serve(async (req) => {
@@ -93,58 +201,64 @@ serve(async (req) => {
       throw new Error('CSV file is empty');
     }
 
-    // Get headers from first line
-    const headers = parseCsvLine(lines[0]).map(h => cleanText(h).toLowerCase());
+    // Get headers from first line and normalize them
+    const rawHeaders = parseCsvLine(lines[0]);
+    const headers = rawHeaders.map(h => {
+      const cleaned = cleanText(h).toLowerCase();
+      // Map French headers to English equivalents
+      const headerMap: { [key: string]: string } = {
+        'numéro de pétition': 'petition_nbr',
+        'date de dépôt': 'filing_date',
+        'titre officiel': 'official_title',
+        'type': 'type',
+        'statut': 'status',
+        'rôle de l\'association': 'association_role',
+        'nom de l\'association': 'association_name',
+        'pays de résidence': 'residency_country',
+        'objet': 'goal',
+        'nombre de signatures électroniques': 'sign_nbr_electronic',
+        'nombre de signatures papier': 'sign_nbr_paper',
+        'motivation': 'motivation'
+      };
+      return headerMap[cleaned] || cleaned;
+    });
+    
     console.log('CSV headers:', headers);
 
     // Parse data rows
     const petitionsData: PetitionData[] = [];
     let errorCount = 0;
+    let skippedCount = 0;
 
     for (let i = 1; i < lines.length; i++) {
-      try {
-        const values = parseCsvLine(lines[i]);
-        
-        // Skip empty lines
-        if (values.every(v => !v.trim())) continue;
+      const values = parseCsvLine(lines[i]);
+      
+      // Skip completely empty lines
+      if (values.every(v => !v.trim())) {
+        skippedCount++;
+        continue;
+      }
 
-        // Map CSV columns to database fields
-        const petition: PetitionData = {
-          petition_nbr: parseInt(cleanText(values[headers.indexOf('numéro de pétition')] || values[0])) || 0,
-          filing_date: parseDate(cleanText(values[headers.indexOf('date de dépôt')] || values[1] || '')),
-          official_title: cleanText(values[headers.indexOf('titre officiel')] || values[2] || ''),
-          type: cleanText(values[headers.indexOf('type')] || values[3] || ''),
-          status: cleanText(values[headers.indexOf('statut')] || values[4] || ''),
-          association_role: cleanText(values[headers.indexOf('rôle de l\'association')] || values[5] || '') || null,
-          association_name: cleanText(values[headers.indexOf('nom de l\'association')] || values[6] || '') || null,
-          residency_country: cleanText(values[headers.indexOf('pays de résidence')] || values[7] || ''),
-          goal: cleanText(values[headers.indexOf('objet')] || values[8] || '') || null,
-          sign_nbr_electronic: parseInt(cleanText(values[headers.indexOf('nombre de signatures électroniques')] || values[9] || '0')) || 0,
-          sign_nbr_paper: parseInt(cleanText(values[headers.indexOf('nombre de signatures papier')] || values[10] || '0')) || 0,
-          motivation: cleanText(values[headers.indexOf('motivation')] || values[11] || '') || null,
-        };
-
-        // Validate required fields
-        if (!petition.official_title || !petition.filing_date || !petition.residency_country) {
-          console.warn(`Skipping row ${i + 1}: Missing required fields`);
-          errorCount++;
-          continue;
-        }
-
+      const petition = mapCsvToPetition(values, headers, i + 1);
+      if (petition) {
         petitionsData.push(petition);
-      } catch (error) {
-        console.error(`Error parsing row ${i + 1}:`, error);
+      } else {
         errorCount++;
       }
     }
 
-    console.log(`Parsed ${petitionsData.length} valid petitions, ${errorCount} errors`);
+    console.log(`Parsing completed: ${petitionsData.length} valid petitions, ${errorCount} errors, ${skippedCount} empty rows skipped`);
 
     if (petitionsData.length === 0) {
       throw new Error('No valid petition data found in CSV');
     }
 
-    // Begin transaction by clearing existing data and inserting new data
+    // Show sample of parsed data for debugging
+    if (petitionsData.length > 0) {
+      console.log('Sample parsed petition:', JSON.stringify(petitionsData[0], null, 2));
+    }
+
+    // Begin database transaction
     console.log('Starting database transaction...');
     
     // Delete existing petitions
@@ -160,35 +274,64 @@ serve(async (req) => {
     console.log('Existing petition data cleared');
 
     // Insert new petitions in batches
-    const batchSize = 100;
+    const batchSize = 50; // Reduced batch size for better error handling
     let insertedCount = 0;
+    let insertErrors = 0;
 
     for (let i = 0; i < petitionsData.length; i += batchSize) {
       const batch = petitionsData.slice(i, i + batchSize);
       
-      const { data, error: insertError } = await supabase
-        .from('petitions')
-        .insert(batch)
-        .select('id');
+      try {
+        const { data, error: insertError } = await supabase
+          .from('petitions')
+          .insert(batch)
+          .select('id');
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        throw new Error(`Failed to insert batch starting at index ${i}: ${insertError.message}`);
+        if (insertError) {
+          console.error(`Insert error for batch ${Math.floor(i / batchSize) + 1}:`, insertError);
+          insertErrors++;
+          
+          // Try inserting individual records to identify problematic ones
+          for (const petition of batch) {
+            try {
+              const { data: singleData, error: singleError } = await supabase
+                .from('petitions')
+                .insert([petition])
+                .select('id');
+              
+              if (singleError) {
+                console.error(`Failed to insert petition ${petition.petition_nbr}:`, singleError);
+                insertErrors++;
+              } else {
+                insertedCount++;
+              }
+            } catch (singleErr) {
+              console.error(`Exception inserting petition ${petition.petition_nbr}:`, singleErr);
+              insertErrors++;
+            }
+          }
+        } else {
+          insertedCount += data?.length || 0;
+          console.log(`Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(petitionsData.length / batchSize)}: ${data?.length} records`);
+        }
+      } catch (batchError) {
+        console.error(`Batch insert exception for batch ${Math.floor(i / batchSize) + 1}:`, batchError);
+        insertErrors++;
       }
-
-      insertedCount += data?.length || 0;
-      console.log(`Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(petitionsData.length / batchSize)}: ${data?.length} records`);
     }
 
-    console.log(`Import completed successfully. Total petitions imported: ${insertedCount}`);
+    console.log(`Import completed. Total petitions imported: ${insertedCount}, insert errors: ${insertErrors}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: `Successfully imported ${insertedCount} petitions`,
+        totalRows: lines.length - 1,
         parsed: petitionsData.length,
-        errors: errorCount,
-        imported: insertedCount
+        parseErrors: errorCount,
+        skipped: skippedCount,
+        imported: insertedCount,
+        insertErrors: insertErrors
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

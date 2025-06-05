@@ -4,16 +4,27 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { usePetitions } from "@/hooks/usePetitions";
 import SwipeableStack from "@/components/SwipeableStack";
 import LanguageSelector from "@/components/LanguageSelector";
-import SecurityAlert from "@/components/SecurityAlert";
-import SecurityMonitor from "@/components/SecurityMonitor";
-import PetitionSync from "@/components/PetitionSync";
 import { Button } from "@/components/ui/button";
-import { Shield, BarChart3 } from "lucide-react";
+import { Petition } from "@/types/petition";
 
 const Index = () => {
   const { t } = useTranslation();
   const { data: petitions, isLoading, error } = usePetitions();
-  const [showSecurityMonitor, setShowSecurityMonitor] = useState(false);
+  const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
+
+  // Update current petitions when data loads
+  useState(() => {
+    if (petitions) {
+      setCurrentPetitions(petitions);
+    }
+  }, [petitions]);
+
+  const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
+    console.log(`Swiped ${direction} on petition:`, petition.official_title);
+    
+    // Remove the swiped petition from the current list
+    setCurrentPetitions(prev => prev.filter(p => p.id !== petition.id));
+  };
 
   if (error) {
     return (
@@ -40,43 +51,25 @@ const Index = () => {
             <p className="text-lg text-gray-600">{t('app.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSecurityMonitor(!showSecurityMonitor)}
-              className="flex items-center gap-2"
-            >
-              {showSecurityMonitor ? <BarChart3 className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
-              {showSecurityMonitor ? 'Hide Monitor' : 'Security'}
-            </Button>
             <LanguageSelector />
           </div>
         </div>
-
-        <SecurityAlert />
-        <PetitionSync />
-        
-        {showSecurityMonitor && (
-          <div className="mb-6">
-            <SecurityMonitor />
-          </div>
-        )}
 
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600">{t('loading.petitions')}</p>
           </div>
-        ) : !petitions || petitions.length === 0 ? (
+        ) : !currentPetitions || currentPetitions.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('noPetitions.title')}</h2>
             <p className="text-gray-600 mb-6">{t('noPetitions.description')}</p>
             <p className="text-sm text-gray-500">
-              Use the "Sync Now" button above to fetch the latest petitions from the Luxembourg government API.
+              The petitions are fetched directly from the Luxembourg government API.
             </p>
           </div>
         ) : (
-          <SwipeableStack petitions={petitions} />
+          <SwipeableStack petitions={currentPetitions} onSwipe={handleSwipe} />
         )}
       </div>
     </div>

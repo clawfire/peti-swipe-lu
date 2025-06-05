@@ -5,9 +5,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 interface PetitionCardFooterProps {
   filingDate: string;
+  petitionNumber: number;
 }
 
-const PetitionCardFooter = ({ filingDate }: PetitionCardFooterProps) => {
+const PetitionCardFooter = ({ filingDate, petitionNumber }: PetitionCardFooterProps) => {
   const { t } = useTranslation();
   
   const calculateRemainingDays = (dateString: string) => {
@@ -36,9 +37,12 @@ const PetitionCardFooter = ({ filingDate }: PetitionCardFooterProps) => {
   };
 
   return (
-    <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
-      <Calendar className="w-4 h-4" />
-      <span>{getDisplayText()}</span>
+    <div className="flex items-center justify-between text-xs text-gray-500 mt-auto">
+      <div className="flex items-center gap-2">
+        <Calendar className="w-4 h-4" />
+        <span>{getDisplayText()}</span>
+      </div>
+      <span>#{petitionNumber}</span>
     </div>
   );
 };

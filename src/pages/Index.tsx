@@ -9,7 +9,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Petition } from "@/types/petition";
 
 const Index = () => {
-  const { data: allPetitions = [], isLoading, error } = usePetitions();
+  const { data: allPetitions = [], isLoading, error, refetch } = usePetitions();
   const { t } = useTranslation();
   const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -36,10 +36,19 @@ const Index = () => {
     }
   };
 
-  const resetStack = () => {
-    setCurrentPetitions(allPetitions);
+  const resetStack = async () => {
+    console.log('Performing hard reset - clearing all decisions and fetching fresh randomized data');
+    
+    // Clear all state
     setLikedPetitions([]);
     setShowResults(false);
+    setCurrentPetitions([]);
+    
+    // Refetch data to get a new randomized order
+    const { data: freshPetitions } = await refetch();
+    if (freshPetitions) {
+      setCurrentPetitions(freshPetitions);
+    }
   };
 
   if (isLoading) {

@@ -27,7 +27,6 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
       <Card className="w-80 min-h-[500px] max-h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
         <div className="p-6 h-full flex flex-col">
           <PetitionCardHeader 
-            status={petition.status}
             petitionNumber={petition.petition_nbr}
           />
 
@@ -50,7 +49,10 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
             status={petition.status}
           />
 
-          <PetitionCardFooter filingDate={petition.filing_date} />
+          <PetitionCardFooter 
+            filingDate={petition.filing_date} 
+            petitionNumber={petition.petition_nbr}
+          />
         </div>
       </Card>
 

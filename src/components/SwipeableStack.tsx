@@ -27,7 +27,7 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
   }
 
   return (
-    <div className="relative flex justify-center items-center min-h-[600px] max-h-[600px] select-none">
+    <div className="relative flex justify-center items-center py-8 select-none">
       {/* Next card (background) - only show if it exists */}
       {nextPetition && (
         <div className="absolute transform scale-95 opacity-50 pointer-events-none z-0">

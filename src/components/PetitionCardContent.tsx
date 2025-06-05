@@ -21,10 +21,10 @@ const PetitionCardContent = ({
   const { t } = useTranslation();
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 pr-2">
+    <div className="space-y-4">
       {/* Goal */}
       {goal && (
-        <div className="mb-4">
+        <div>
           <div className="flex items-center gap-2 mb-2">
             <Target className="w-4 h-4 text-blue-600 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-700">{t('petition.goal')}</span>
@@ -35,7 +35,7 @@ const PetitionCardContent = ({
 
       {/* Association */}
       {associationName && (
-        <div className="mb-4">
+        <div>
           <div className="flex items-center gap-2 mb-1">
             <Building2 className="w-4 h-4 text-purple-600 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-700">{t('petition.organization')}</span>
@@ -49,7 +49,7 @@ const PetitionCardContent = ({
 
       {/* Motivation with show more functionality */}
       {motivation && (
-        <div className="mb-4">
+        <div>
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="w-4 h-4 text-indigo-600 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-700">{t('petition.motivation')}</span>

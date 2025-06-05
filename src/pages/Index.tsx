@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { usePetitions } from "@/hooks/usePetitions";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +63,11 @@ const Index = () => {
     setSwipeResults({});
     setShowResults(false);
   };
+
+  // Calculate liked petitions from swipe results
+  const likedPetitions = petitions.filter(petition => 
+    swipeResults[petition.id] === 'right'
+  );
 
   if (isLoading) {
     return (
@@ -184,9 +188,8 @@ const Index = () => {
         <ResultsModal
           open={showResults}
           onOpenChange={setShowResults}
-          results={swipeResults}
-          petitions={petitions}
-          onRestart={handleRestart}
+          likedPetitions={likedPetitions}
+          onReset={handleRestart}
         />
       </main>
     </div>

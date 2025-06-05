@@ -37,7 +37,7 @@ const PetitionCardFooter = ({ filingDate, petitionNumber }: PetitionCardFooterPr
   };
 
   return (
-    <div className="flex items-center justify-between text-xs text-gray-500 mt-auto">
+    <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100 flex-shrink-0">
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4" />
         <span>{getDisplayText()}</span>

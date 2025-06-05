@@ -6,17 +6,31 @@ interface PetitionCardSignaturesProps {
   signElectronic?: number | null;
   signPaper?: number | null;
   status: string;
+  filingDate: string;
 }
 
-const PetitionCardSignatures = ({ signElectronic, signPaper, status }: PetitionCardSignaturesProps) => {
+const PetitionCardSignatures = ({ signElectronic, signPaper, status, filingDate }: PetitionCardSignaturesProps) => {
   const { t } = useTranslation();
   const totalSignatures = (signElectronic || 0) + (signPaper || 0);
-  const hotMeterPercentage = Math.min((totalSignatures / 5500) * 100, 100);
+  
+  // Historical threshold logic: petitions filed before March 1, 2025 use 4500 threshold
+  const getThreshold = () => {
+    try {
+      const filing = new Date(filingDate);
+      const marchFirst2025 = new Date('2025-03-01');
+      return filing < marchFirst2025 ? 4500 : 5500;
+    } catch {
+      return 5500; // Default to current threshold if date parsing fails
+    }
+  };
+
+  const threshold = getThreshold();
+  const hotMeterPercentage = Math.min((totalSignatures / threshold) * 100, 100);
   const isThresholdReached = status === 'SEUIL_ATTEINT';
   const isHighlyPopular = hotMeterPercentage > 80 || isThresholdReached;
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 flex-shrink-0">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {isThresholdReached ? (
@@ -37,7 +51,7 @@ const PetitionCardSignatures = ({ signElectronic, signPaper, status }: PetitionC
         <span className={`text-2xl font-bold ${isThresholdReached ? 'text-orange-600' : 'text-green-600'} ${isThresholdReached ? 'animate-pulse' : ''}`}>
           {totalSignatures.toLocaleString()}
         </span>
-        <span className="text-sm text-gray-500">/5500</span>
+        <span className="text-sm text-gray-500">/{threshold.toLocaleString()}</span>
       </div>
 
       <div className={`w-full bg-gray-200 rounded-full h-2 ${isHighlyPopular ? 'shadow-lg' : ''}`}>
@@ -54,9 +68,9 @@ const PetitionCardSignatures = ({ signElectronic, signPaper, status }: PetitionC
       </div>
 
       <div className="text-xs text-gray-500 mt-1">
-        {signElectronic && `${signElectronic} ${t('petition.electronic')}`}
-        {signElectronic && signPaper && ' • '}
-        {signPaper && `${signPaper} ${t('petition.paper')}`}
+        {signElectronic && signElectronic > 0 && `${signElectronic.toLocaleString()} ${t('petition.electronic')}`}
+        {signElectronic && signElectronic > 0 && signPaper && signPaper > 0 && ' • '}
+        {signPaper && signPaper > 0 && `${signPaper.toLocaleString()} ${t('petition.paper')}`}
       </div>
     </div>
   );

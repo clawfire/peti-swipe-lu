@@ -26,7 +26,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
       <Card className="w-80 min-h-[500px] max-h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
         <div className="p-6 h-full flex flex-col">
           {/* Title - now starts at the top */}
-          <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight flex-shrink-0">
             {petition.official_title}
           </h2>
 
@@ -42,6 +42,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
             signElectronic={petition.sign_nbr_electronic}
             signPaper={petition.sign_nbr_paper}
             status={petition.status}
+            filingDate={petition.filing_date}
           />
 
           <PetitionCardFooter 

@@ -21,7 +21,20 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
   if (!petition) return null;
 
   const totalSignatures = (petition.sign_nbr_electronic || 0) + (petition.sign_nbr_paper || 0);
-  const hotMeterPercentage = Math.min((totalSignatures / 5500) * 100, 100);
+  
+  // Historical threshold logic: petitions filed before March 1, 2025 use 4500 threshold
+  const getThreshold = () => {
+    try {
+      const filing = new Date(petition.filing_date);
+      const marchFirst2025 = new Date('2025-03-01');
+      return filing < marchFirst2025 ? 4500 : 5500;
+    } catch {
+      return 5500; // Default to current threshold if date parsing fails
+    }
+  };
+
+  const threshold = getThreshold();
+  const hotMeterPercentage = Math.min((totalSignatures / threshold) * 100, 100);
   const isThresholdReached = petition.status === 'SEUIL_ATTEINT';
   const isHighlyPopular = hotMeterPercentage > 80 || isThresholdReached;
   
@@ -64,14 +77,6 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
       <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none border-none">
         <ScrollArea className="w-full h-full">
           <div className="p-8">
-            {/* Header */}
-            <div className="flex justify-between items-start mb-6">
-              <Badge className={getStatusColor(petition.status)}>
-                {getStatusText(petition.status)}
-              </Badge>
-              <span className="text-sm text-gray-500">#{petition.petition_nbr}</span>
-            </div>
-
             {/* Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-6 leading-tight">
               {petition.official_title}
@@ -98,7 +103,7 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
                 <span className={`text-5xl font-bold ${isThresholdReached ? 'text-orange-600' : 'text-green-600'} ${isThresholdReached ? 'animate-pulse' : ''}`}>
                   {totalSignatures.toLocaleString()}
                 </span>
-                <span className="text-2xl text-gray-500">/5500</span>
+                <span className="text-2xl text-gray-500">/{threshold.toLocaleString()}</span>
               </div>
               <div className={`w-full bg-gray-200 rounded-full h-3 ${isHighlyPopular ? 'shadow-lg' : ''}`}>
                 <div 
@@ -113,9 +118,9 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
                 ></div>
               </div>
               <div className="text-sm text-gray-500 mt-2">
-                {petition.sign_nbr_electronic && `${petition.sign_nbr_electronic} ${t('petition.electronic')}`}
-                {petition.sign_nbr_electronic && petition.sign_nbr_paper && ' • '}
-                {petition.sign_nbr_paper && `${petition.sign_nbr_paper} ${t('petition.paper')}`}
+                {petition.sign_nbr_electronic && petition.sign_nbr_electronic > 0 && `${petition.sign_nbr_electronic.toLocaleString()} ${t('petition.electronic')}`}
+                {petition.sign_nbr_electronic && petition.sign_nbr_electronic > 0 && petition.sign_nbr_paper && petition.sign_nbr_paper > 0 && ' • '}
+                {petition.sign_nbr_paper && petition.sign_nbr_paper > 0 && `${petition.sign_nbr_paper.toLocaleString()} ${t('petition.paper')}`}
               </div>
             </div>
 
@@ -157,10 +162,13 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
               </div>
             )}
 
-            {/* Date */}
-            <div className="flex items-center gap-3 text-gray-500 mt-8 pt-6 border-t">
-              <Calendar className="w-5 h-5" />
-              <span className="text-sm">{t('petition.filed')} {formatDate(petition.filing_date)}</span>
+            {/* Footer with Date and Petition Number */}
+            <div className="flex items-center justify-between text-gray-500 mt-8 pt-6 border-t">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5" />
+                <span className="text-sm">{t('petition.filed')} {formatDate(petition.filing_date)}</span>
+              </div>
+              <span className="text-sm">#{petition.petition_nbr}</span>
             </div>
           </div>
         </ScrollArea>

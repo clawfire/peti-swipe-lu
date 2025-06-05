@@ -2,7 +2,7 @@
 export const translations = {
   fr: {
     // Header
-    'app.title': 'PetitionSwipe',
+    'app.title': 'Petinder',
     'app.subtitle': 'Découvrez et soutenez les pétitions qui vous tiennent à cœur',
     
     // Instructions
@@ -60,7 +60,7 @@ export const translations = {
   
   en: {
     // Header
-    'app.title': 'PetitionSwipe',
+    'app.title': 'Petinder',
     'app.subtitle': 'Discover and support petitions that matter to you',
     
     // Instructions
@@ -118,7 +118,7 @@ export const translations = {
   
   de: {
     // Header
-    'app.title': 'PetitionSwipe',
+    'app.title': 'Petinder',
     'app.subtitle': 'Entdecken und unterstützen Sie Petitionen, die Ihnen wichtig sind',
     
     // Instructions

@@ -4,8 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, de } from "date-fns/locale";
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Petition } from "@/types/petition";
 
 interface PetitionCardProps {
@@ -14,15 +15,24 @@ interface PetitionCardProps {
 
 const PetitionCard = ({ petition }: PetitionCardProps) => {
   const [showFullMotivation, setShowFullMotivation] = useState(false);
+  const { t, language } = useTranslation();
   const totalSignatures = (petition.sign_nbr_electronic || 0) + (petition.sign_nbr_paper || 0);
   const hotMeterPercentage = Math.min((totalSignatures / 5500) * 100, 100);
   const isThresholdReached = petition.status === 'SEUIL_ATTEINT';
   const isHighlyPopular = hotMeterPercentage > 80 || isThresholdReached;
   
+  const getDateLocale = () => {
+    switch (language) {
+      case 'en': return enUS;
+      case 'de': return de;
+      default: return fr;
+    }
+  };
+  
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return formatDistanceToNow(date, { addSuffix: true, locale: fr });
+      return formatDistanceToNow(date, { addSuffix: true, locale: getDateLocale() });
     } catch {
       return dateString;
     }
@@ -42,18 +52,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
   };
 
   const getStatusText = (status: string) => {
-    switch (status) {
-      case 'SIGNATURE_EN_COURS':
-        return 'En cours de signature';
-      case 'SEUIL_ATTEINT':
-        return 'Seuil atteint';
-      case 'CLOTUREE':
-        return 'Clôturée';
-      case 'RECEVABLE':
-        return 'Recevable';
-      default:
-        return status;
-    }
+    return t(`status.${status}`) || status;
   };
 
   return (
@@ -67,7 +66,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           <span className="text-sm text-gray-500">#{petition.petition_nbr}</span>
         </div>
 
-        {/* Title - Removed line-clamp to prevent cutoff */}
+        {/* Title */}
         <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
           {petition.official_title}
         </h2>
@@ -77,7 +76,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">Objectif</span>
+              <span className="text-sm font-medium text-gray-700">{t('petition.goal')}</span>
             </div>
             <p className="text-sm text-gray-600 line-clamp-2">{petition.goal}</p>
           </div>
@@ -88,7 +87,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-1">
               <Building2 className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">Organisation</span>
+              <span className="text-sm font-medium text-gray-700">{t('petition.organization')}</span>
             </div>
             <p className="text-sm text-gray-600">
               {petition.association_name}
@@ -101,7 +100,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
         {petition.motivation && (
           <div className="mb-4 flex-1 overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Motivation</span>
+              <span className="text-sm font-medium text-gray-700">{t('petition.motivation')}</span>
             </div>
             <div className="relative">
               <p className={`text-sm text-gray-600 ${showFullMotivation ? '' : 'line-clamp-3'}`}>
@@ -117,12 +116,12 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
                   {showFullMotivation ? (
                     <>
                       <ChevronUp className="w-4 h-4 mr-1" />
-                      Voir moins
+                      {t('petition.showLess')}
                     </>
                   ) : (
                     <>
                       <ChevronDown className="w-4 h-4 mr-1" />
-                      Voir plus
+                      {t('petition.showMore')}
                     </>
                   )}
                 </Button>
@@ -136,10 +135,10 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Flame className={`w-4 h-4 ${isHighlyPopular ? 'text-yellow-500' : 'text-orange-500'} ${isHighlyPopular ? 'animate-pulse' : ''}`} />
-              <span className="text-sm font-medium text-gray-700">Popularité</span>
+              <span className="text-sm font-medium text-gray-700">{t('petition.popularity')}</span>
               {isThresholdReached && (
                 <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full font-semibold animate-pulse">
-                  🔥 POPULAIRE
+                  {t('petition.popular')}
                 </span>
               )}
             </div>
@@ -163,22 +162,22 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-gray-700">Signatures</span>
+            <span className="text-sm font-medium text-gray-700">{t('petition.signatures')}</span>
           </div>
           <div className={`text-2xl font-bold ${isThresholdReached ? 'text-orange-600' : 'text-green-600'} ${isThresholdReached ? 'animate-pulse' : ''}`}>
             {totalSignatures.toLocaleString()}
           </div>
           <div className="text-xs text-gray-500">
-            {petition.sign_nbr_electronic && `${petition.sign_nbr_electronic} électroniques`}
+            {petition.sign_nbr_electronic && `${petition.sign_nbr_electronic} ${t('petition.electronic')}`}
             {petition.sign_nbr_electronic && petition.sign_nbr_paper && ' • '}
-            {petition.sign_nbr_paper && `${petition.sign_nbr_paper} papier`}
+            {petition.sign_nbr_paper && `${petition.sign_nbr_paper} ${t('petition.paper')}`}
           </div>
         </div>
 
         {/* Date */}
         <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
           <Calendar className="w-4 h-4" />
-          <span>Déposée {formatDate(petition.filing_date)}</span>
+          <span>{t('petition.filed')} {formatDate(petition.filing_date)}</span>
         </div>
       </div>
     </Card>

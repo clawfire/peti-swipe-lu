@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Heart, RotateCcw, Users } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Petition } from "@/types/petition";
 
 interface ResultsModalProps {
@@ -13,6 +14,8 @@ interface ResultsModalProps {
 }
 
 const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsModalProps) => {
+  const { t } = useTranslation();
+  
   const handleSignPetition = (petitionNumber: number) => {
     // Open petition page on petitions.lu
     window.open(`https://petitions.lu/petition/${petitionNumber}`, '_blank');
@@ -29,21 +32,21 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <Heart className="w-6 h-6 text-pink-500" />
-            Vos pétitions sélectionnées
+            {t('results.title')}
           </DialogTitle>
         </DialogHeader>
 
         {likedPetitions.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">Aucune pétition sélectionnée pour le moment.</p>
+            <p className="text-gray-600 mb-4">{t('results.none')}</p>
             <Button onClick={() => onOpenChange(false)}>
-              Continuer à parcourir
+              {t('results.continue')}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             <p className="text-gray-600">
-              Vous avez sélectionné {likedPetitions.length} pétition{likedPetitions.length > 1 ? 's' : ''} à signer.
+              {t('results.selected')} {likedPetitions.length} {likedPetitions.length > 1 ? t('results.petitions') : t('results.petition')} {t('results.toSign')}
             </p>
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -70,7 +73,7 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <Users className="w-4 h-4" />
-                        <span>{totalSignatures.toLocaleString()} signatures</span>
+                        <span>{totalSignatures.toLocaleString()} {t('petition.signatures').toLowerCase()}</span>
                       </div>
                       
                       <Button 
@@ -79,7 +82,7 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
                         size="sm"
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        Signer
+                        {t('results.sign')}
                       </Button>
                     </div>
                   </div>
@@ -94,13 +97,13 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
                 className="flex-1"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
-                Recommencer
+                {t('results.restart')}
               </Button>
               <Button 
                 onClick={() => onOpenChange(false)}
                 className="flex-1"
               >
-                Continuer à parcourir
+                {t('results.continue')}
               </Button>
             </div>
           </div>

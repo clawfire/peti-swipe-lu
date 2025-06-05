@@ -61,8 +61,8 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 z-[100]">
-        <ScrollArea className="h-full">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none border-none">
+        <ScrollArea className="w-full h-full">
           <div className="p-8">
             {/* Header */}
             <div className="flex justify-between items-start mb-6">

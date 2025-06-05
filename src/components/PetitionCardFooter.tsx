@@ -1,6 +1,6 @@
 
 import { Calendar } from "lucide-react";
-import { differenceInDays, addDays } from "date-fns";
+import { differenceInDays, addDays, parseISO, isValid } from "date-fns";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PetitionCardFooterProps {
@@ -13,13 +13,30 @@ const PetitionCardFooter = ({ filingDate, petitionNumber }: PetitionCardFooterPr
   
   const calculateRemainingDays = (dateString: string) => {
     try {
-      const filingDate = new Date(dateString);
-      const deadline = addDays(filingDate, 42); // 6 weeks = 42 days
+      console.log('Original filing date string:', dateString);
+      
+      // Parse the date string more reliably
+      const filing = parseISO(dateString);
+      console.log('Parsed filing date:', filing);
+      
+      if (!isValid(filing)) {
+        console.error('Invalid filing date:', dateString);
+        return 0;
+      }
+      
+      const deadline = addDays(filing, 42); // 6 weeks = 42 days
       const today = new Date();
+      
+      console.log('Filing date:', filing.toISOString());
+      console.log('Deadline:', deadline.toISOString());
+      console.log('Today:', today.toISOString());
+      
       const remainingDays = differenceInDays(deadline, today);
+      console.log('Calculated remaining days:', remainingDays);
       
       return Math.max(0, remainingDays); // Don't show negative days
-    } catch {
+    } catch (error) {
+      console.error('Error calculating remaining days:', error);
       return 0;
     }
   };

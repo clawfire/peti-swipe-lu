@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import SwipeableStack from "@/components/SwipeableStack";
 import ResultsModal from "@/components/ResultsModal";
 import { Button } from "@/components/ui/button";
-import { Heart, X, RotateCcw, Loader2 } from "lucide-react";
+import { Heart, X, RotateCcw, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 import { usePetitions } from "@/hooks/usePetitions";
 import { Petition } from "@/types/petition";
 
@@ -87,15 +88,27 @@ const Index = () => {
         </div>
 
         <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
-            <div className="flex items-center gap-2">
-              <X className="w-5 h-5 text-red-500" />
-              <span className="text-sm text-gray-600">Passer</span>
+          <div className="flex items-center justify-center gap-8 text-center">
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-red-500">
+                <ArrowLeft className="w-6 h-6" />
+                <X className="w-8 h-8" />
+              </div>
+              <span className="text-sm font-medium text-gray-700">Glissez à gauche</span>
+              <span className="text-xs text-gray-500">pour passer</span>
             </div>
-            <div className="w-px h-6 bg-gray-300"></div>
-            <div className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-pink-500" />
-              <span className="text-sm text-gray-600">Signer</span>
+            
+            <div className="flex flex-col items-center gap-2 text-gray-400">
+              <div className="text-lg font-semibold">OU</div>
+            </div>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-pink-500">
+                <Heart className="w-8 h-8" />
+                <ArrowRight className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-medium text-gray-700">Glissez à droite</span>
+              <span className="text-xs text-gray-500">pour signer</span>
             </div>
           </div>
         </div>

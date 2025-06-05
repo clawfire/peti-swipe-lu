@@ -29,8 +29,25 @@ const PetitionCardSignatures = ({ signElectronic, signPaper, status, filingDate 
   const isThresholdReached = status === 'SEUIL_ATTEINT';
   const isHighlyPopular = hotMeterPercentage > 80 || isThresholdReached;
 
+  // Helper function to format signature breakdown
+  const getSignatureBreakdown = () => {
+    const parts = [];
+    if (signElectronic && signElectronic > 0) {
+      parts.push(`${signElectronic.toLocaleString()} ${t('petition.electronic')}`);
+    }
+    if (signPaper && signPaper > 0) {
+      parts.push(`${signPaper.toLocaleString()} ${t('petition.paper')}`);
+    }
+    
+    if (parts.length === 0) {
+      return t('petition.noSignaturesYet');
+    }
+    
+    return parts.join(' • ');
+  };
+
   return (
-    <div className="mb-4 flex-shrink-0">
+    <div className="mb-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {isThresholdReached ? (
@@ -68,9 +85,7 @@ const PetitionCardSignatures = ({ signElectronic, signPaper, status, filingDate 
       </div>
 
       <div className="text-xs text-gray-500 mt-1">
-        {signElectronic && signElectronic > 0 && `${signElectronic.toLocaleString()} ${t('petition.electronic')}`}
-        {signElectronic && signElectronic > 0 && signPaper && signPaper > 0 && ' • '}
-        {signPaper && signPaper > 0 && `${signPaper.toLocaleString()} ${t('petition.paper')}`}
+        {getSignatureBreakdown()}
       </div>
     </div>
   );

@@ -23,32 +23,41 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
 
   return (
     <>
-      <Card className="w-80 min-h-[500px] max-h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
+      <Card className="w-80 h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
         <div className="p-6 h-full flex flex-col">
-          {/* Title - now starts at the top */}
-          <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight flex-shrink-0">
+          {/* Title with better truncation */}
+          <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight flex-shrink-0 line-clamp-3 min-h-0">
             {petition.official_title}
           </h2>
 
-          <PetitionCardContent
-            goal={petition.goal}
-            associationName={petition.association_name}
-            associationRole={petition.association_role}
-            motivation={petition.motivation}
-            onShowMore={handleShowMoreClick}
-          />
+          {/* Content area with constrained height and overflow handling */}
+          <div className="flex-1 min-h-0 overflow-hidden mb-4">
+            <PetitionCardContent
+              goal={petition.goal}
+              associationName={petition.association_name}
+              associationRole={petition.association_role}
+              motivation={petition.motivation}
+              onShowMore={handleShowMoreClick}
+            />
+          </div>
 
-          <PetitionCardSignatures
-            signElectronic={petition.sign_nbr_electronic}
-            signPaper={petition.sign_nbr_paper}
-            status={petition.status}
-            filingDate={petition.filing_date}
-          />
+          {/* Signatures - always visible */}
+          <div className="flex-shrink-0">
+            <PetitionCardSignatures
+              signElectronic={petition.sign_nbr_electronic}
+              signPaper={petition.sign_nbr_paper}
+              status={petition.status}
+              filingDate={petition.filing_date}
+            />
+          </div>
 
-          <PetitionCardFooter 
-            filingDate={petition.filing_date} 
-            petitionNumber={petition.petition_nbr}
-          />
+          {/* Footer - always visible */}
+          <div className="flex-shrink-0">
+            <PetitionCardFooter 
+              filingDate={petition.filing_date} 
+              petitionNumber={petition.petition_nbr}
+            />
+          </div>
         </div>
       </Card>
 

@@ -21,12 +21,12 @@ const PetitionCardContent = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex-1 overflow-hidden">
+    <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 pr-2">
       {/* Goal */}
       {goal && (
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <Target className="w-4 h-4 text-blue-600" />
+            <Target className="w-4 h-4 text-blue-600 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-700">{t('petition.goal')}</span>
           </div>
           <p className="text-sm text-gray-600 line-clamp-2">{goal}</p>
@@ -37,7 +37,7 @@ const PetitionCardContent = ({
       {associationName && (
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-1">
-            <Building2 className="w-4 h-4 text-purple-600" />
+            <Building2 className="w-4 h-4 text-purple-600 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-700">{t('petition.organization')}</span>
           </div>
           <p className="text-sm text-gray-600">
@@ -47,11 +47,11 @@ const PetitionCardContent = ({
         </div>
       )}
 
-      {/* Motivation with icon and show more functionality */}
+      {/* Motivation with show more functionality */}
       {motivation && (
-        <div className="mb-4 flex-1 overflow-hidden">
+        <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <MessageSquare className="w-4 h-4 text-indigo-600" />
+            <MessageSquare className="w-4 h-4 text-indigo-600 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-700">{t('petition.motivation')}</span>
           </div>
           <div className="relative">

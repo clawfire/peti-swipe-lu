@@ -4,18 +4,28 @@ export const translations = {
     // Header
     'app.title': 'Petinder',
     'app.subtitle': 'Découvrez et soutenez les pétitions qui vous tiennent à cœur',
+    'app.description': 'Parcourez les pétitions comme sur Tinder et trouvez celles qui vous correspondent.',
     
     // Instructions
+    'instructions.title': 'Comment ça marche',
     'instructions.swipeLeft': 'Glissez à gauche',
     'instructions.swipeRight': 'Glissez à droite',
     'instructions.toSkip': 'pour passer',
     'instructions.toSign': 'pour signer',
     'instructions.or': 'OU',
     
+    // Swipe feedback
+    'swipe.supported': 'Pétition soutenue',
+    'swipe.notSupported': 'Pétition passée',
+    
     // Loading states
     'loading.petitions': 'Chargement des pétitions...',
+    'error.title': 'Erreur de chargement',
+    'error.description': 'Impossible de charger les pétitions. Veuillez réessayer.',
     'error.loading': 'Erreur lors du chargement des pétitions',
     'error.retry': 'Réessayer',
+    'noPetitions.title': 'Aucune pétition disponible',
+    'noPetitions.description': 'Il n\'y a actuellement aucune pétition à afficher.',
     'error.noPetitions': 'Aucune pétition trouvée',
     'error.importData': 'Importez vos données de pétitions dans Supabase pour commencer',
     
@@ -63,18 +73,28 @@ export const translations = {
     // Header
     'app.title': 'Petinder',
     'app.subtitle': 'Discover and support petitions that matter to you',
+    'app.description': 'Swipe through petitions like Tinder and find the ones that resonate with you.',
     
     // Instructions
+    'instructions.title': 'How it works',
     'instructions.swipeLeft': 'Swipe left',
     'instructions.swipeRight': 'Swipe right',
     'instructions.toSkip': 'to skip',
     'instructions.toSign': 'to sign',
     'instructions.or': 'OR',
     
+    // Swipe feedback
+    'swipe.supported': 'Petition supported',
+    'swipe.notSupported': 'Petition skipped',
+    
     // Loading states
     'loading.petitions': 'Loading petitions...',
+    'error.title': 'Loading Error',
+    'error.description': 'Unable to load petitions. Please try again.',
     'error.loading': 'Error loading petitions',
     'error.retry': 'Retry',
+    'noPetitions.title': 'No petitions available',
+    'noPetitions.description': 'There are currently no petitions to display.',
     'error.noPetitions': 'No petitions found',
     'error.importData': 'Import your petition data into Supabase to get started',
     
@@ -122,18 +142,28 @@ export const translations = {
     // Header
     'app.title': 'Petinder',
     'app.subtitle': 'Entdecken und unterstützen Sie Petitionen, die Ihnen wichtig sind',
+    'app.description': 'Wischen Sie durch Petitionen wie bei Tinder und finden Sie die, die Sie ansprechen.',
     
     // Instructions
+    'instructions.title': 'So funktioniert es',
     'instructions.swipeLeft': 'Nach links wischen',
     'instructions.swipeRight': 'Nach rechts wischen',
     'instructions.toSkip': 'zum Überspringen',
     'instructions.toSign': 'zum Unterzeichnen',
     'instructions.or': 'ODER',
     
+    // Swipe feedback
+    'swipe.supported': 'Petition unterstützt',
+    'swipe.notSupported': 'Petition übersprungen',
+    
     // Loading states
     'loading.petitions': 'Petitionen werden geladen...',
+    'error.title': 'Ladefehler',
+    'error.description': 'Petitionen konnten nicht geladen werden. Bitte versuchen Sie es erneut.',
     'error.loading': 'Fehler beim Laden der Petitionen',
     'error.retry': 'Erneut versuchen',
+    'noPetitions.title': 'Keine Petitionen verfügbar',
+    'noPetitions.description': 'Es sind derzeit keine Petitionen anzuzeigen.',
     'error.noPetitions': 'Keine Petitionen gefunden',
     'error.importData': 'Importieren Sie Ihre Petitionsdaten in Supabase, um zu beginnen',
     

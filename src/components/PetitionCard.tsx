@@ -1,9 +1,11 @@
 
-import { Calendar, Users, Flame, Building2, Target } from "lucide-react";
+import { Calendar, Users, Flame, Building2, Target, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useState } from "react";
 
 interface Petition {
   PETITION_NBR: number;
@@ -25,6 +27,7 @@ interface PetitionCardProps {
 }
 
 const PetitionCard = ({ petition }: PetitionCardProps) => {
+  const [showFullMotivation, setShowFullMotivation] = useState(false);
   const totalSignatures = (petition.SIGN_NBR_ELECTRONIC || 0) + (petition.SIGN_NBR_PAPER || 0);
   const hotMeterPercentage = Math.min((totalSignatures / 5500) * 100, 100);
   
@@ -66,7 +69,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
   };
 
   return (
-    <Card className="w-80 h-[550px] bg-white shadow-xl rounded-2xl overflow-hidden">
+    <Card className="w-80 min-h-[500px] max-h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
       <div className="p-6 h-full flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
@@ -76,8 +79,8 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           <span className="text-sm text-gray-500">#{petition.PETITION_NBR}</span>
         </div>
 
-        {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 mb-4 line-clamp-3">
+        {/* Title - Removed line-clamp to prevent cutoff */}
+        <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
           {petition.OFFICIAL_TITLE}
         </h2>
 
@@ -106,13 +109,37 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           </div>
         )}
 
-        {/* Motivation */}
+        {/* Motivation with show more functionality */}
         {petition.MOTIVATION && (
-          <div className="mb-4 flex-1">
+          <div className="mb-4 flex-1 overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium text-gray-700">Motivation</span>
             </div>
-            <p className="text-sm text-gray-600 line-clamp-4">{petition.MOTIVATION}</p>
+            <div className="relative">
+              <p className={`text-sm text-gray-600 ${showFullMotivation ? '' : 'line-clamp-3'}`}>
+                {petition.MOTIVATION}
+              </p>
+              {petition.MOTIVATION.length > 150 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFullMotivation(!showFullMotivation)}
+                  className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-800"
+                >
+                  {showFullMotivation ? (
+                    <>
+                      <ChevronUp className="w-4 h-4 mr-1" />
+                      Voir moins
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4 mr-1" />
+                      Voir plus
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
@@ -148,7 +175,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
         </div>
 
         {/* Date */}
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
           <Calendar className="w-4 h-4" />
           <span>Déposée {formatDate(petition.FILING_DATE)}</span>
         </div>

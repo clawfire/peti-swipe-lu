@@ -1,7 +1,6 @@
 
 import { Calendar } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { fr, enUS, de } from "date-fns/locale";
+import { differenceInDays, addDays } from "date-fns";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PetitionCardFooterProps {
@@ -9,29 +8,37 @@ interface PetitionCardFooterProps {
 }
 
 const PetitionCardFooter = ({ filingDate }: PetitionCardFooterProps) => {
-  const { t, language } = useTranslation();
-
-  const getDateLocale = () => {
-    switch (language) {
-      case 'en': return enUS;
-      case 'de': return de;
-      default: return fr;
+  const { t } = useTranslation();
+  
+  const calculateRemainingDays = (dateString: string) => {
+    try {
+      const filingDate = new Date(dateString);
+      const deadline = addDays(filingDate, 42); // 6 weeks = 42 days
+      const today = new Date();
+      const remainingDays = differenceInDays(deadline, today);
+      
+      return Math.max(0, remainingDays); // Don't show negative days
+    } catch {
+      return 0;
     }
   };
-  
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return formatDistanceToNow(date, { addSuffix: true, locale: getDateLocale() });
-    } catch {
-      return dateString;
+
+  const remainingDays = calculateRemainingDays(filingDate);
+
+  const getDisplayText = () => {
+    if (remainingDays === 0) {
+      return t('petition.lastDay');
+    } else if (remainingDays === 1) {
+      return `1 ${t('petition.dayLeft')}`;
+    } else {
+      return `${remainingDays} ${t('petition.daysLeft')}`;
     }
   };
 
   return (
     <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
       <Calendar className="w-4 h-4" />
-      <span>{t('petition.filed')} {formatDate(filingDate)}</span>
+      <span>{getDisplayText()}</span>
     </div>
   );
 };

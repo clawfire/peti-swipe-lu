@@ -36,6 +36,9 @@ export const translations = {
     'petition.showMore': 'Voir plus',
     'petition.showLess': 'Voir moins',
     'petition.popular': '🔥 POPULAIRE',
+    'petition.daysLeft': 'jours restants pour signer',
+    'petition.dayLeft': 'jour restant pour signer',
+    'petition.lastDay': 'Dernier jour pour signer',
     
     // Status
     'status.SIGNATURE_EN_COURS': 'En cours de signature',
@@ -91,6 +94,9 @@ export const translations = {
     'petition.showMore': 'Show more',
     'petition.showLess': 'Show less',
     'petition.popular': '🔥 POPULAR',
+    'petition.daysLeft': 'days left to sign',
+    'petition.dayLeft': 'day left to sign',
+    'petition.lastDay': 'Last day to sign',
     
     // Status
     'status.SIGNATURE_EN_COURS': 'Signature in progress',
@@ -146,6 +152,9 @@ export const translations = {
     'petition.showMore': 'Mehr anzeigen',
     'petition.showLess': 'Weniger anzeigen',
     'petition.popular': '🔥 BELIEBT',
+    'petition.daysLeft': 'Tage zum Unterzeichnen übrig',
+    'petition.dayLeft': 'Tag zum Unterzeichnen übrig',
+    'petition.lastDay': 'Letzter Tag zum Unterzeichnen',
     
     // Status
     'status.SIGNATURE_EN_COURS': 'Unterschriftensammlung läuft',

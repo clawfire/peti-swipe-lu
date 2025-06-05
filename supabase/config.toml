@@ -45,6 +45,9 @@ enable_confirmations = false
 [functions.import-petitions]
 verify_jwt = false
 
+[functions.fetch-petitions]
+verify_jwt = false
+
 [analytics]
 enabled = false
 

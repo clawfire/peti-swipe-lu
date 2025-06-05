@@ -25,7 +25,7 @@ export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGe
   const animationRef = useRef<number>();
   const cachedRect = useRef<DOMRect | null>(null);
 
-  // Cache bounding rect on mount and resize
+  // Cache bounding rect on mount and when petition changes
   useLayoutEffect(() => {
     const updateRect = () => {
       if (cardRef.current) {
@@ -33,10 +33,11 @@ export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGe
       }
     };
 
+    // Update immediately and add resize listener
     updateRect();
     window.addEventListener('resize', updateRect);
     return () => window.removeEventListener('resize', updateRect);
-  }, []);
+  }, [currentPetition?.id]); // Update when petition changes
 
   // Cleanup animation frame on unmount
   useLayoutEffect(() => {
@@ -61,7 +62,12 @@ export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGe
 
     e.preventDefault();
     
-    if (!cardRef.current || !cachedRect.current) return;
+    if (!cardRef.current) return;
+
+    // Update cached rect before starting drag
+    cachedRect.current = cardRef.current.getBoundingClientRect();
+    
+    if (!cachedRect.current) return;
 
     const { clientX, clientY } = getEventCoordinates(e);
     const rect = cachedRect.current;

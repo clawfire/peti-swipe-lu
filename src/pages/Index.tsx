@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import SwipeableStack from "@/components/SwipeableStack";
 import ResultsModal from "@/components/ResultsModal";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -13,43 +14,51 @@ const Index = () => {
   const { t } = useTranslation();
   const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
+  const [availablePetitions, setAvailablePetitions] = useState<Petition[]>([]);
 
-  // Update currentPetitions when data is loaded
-  React.useEffect(() => {
-    if (allPetitions.length > 0 && currentPetitions.length === 0) {
-      setCurrentPetitions(allPetitions);
+  // Update available petitions when data is loaded
+  useEffect(() => {
+    if (allPetitions.length > 0) {
+      console.log('Setting available petitions:', allPetitions.length);
+      setAvailablePetitions(allPetitions);
     }
-  }, [allPetitions, currentPetitions.length]);
+  }, [allPetitions]);
 
-  const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
+  const handleSwipe = useCallback((petition: Petition, direction: 'left' | 'right') => {
+    console.log(`Swiped ${direction} on petition:`, petition.id);
+    
     if (direction === 'right') {
       setLikedPetitions(prev => [...prev, petition]);
     }
     
-    // Remove the swiped petition from current stack
-    setCurrentPetitions(prev => prev.filter(p => p.id !== petition.id));
-    
-    // If no more petitions, show results
-    if (currentPetitions.length === 1) {
-      setTimeout(() => setShowResults(true), 500);
-    }
-  };
+    // Remove the swiped petition from available stack
+    setAvailablePetitions(prev => {
+      const filtered = prev.filter(p => p.id !== petition.id);
+      console.log('Remaining petitions after swipe:', filtered.length);
+      
+      // If no more petitions, show results after a delay
+      if (filtered.length === 0) {
+        setTimeout(() => setShowResults(true), 500);
+      }
+      
+      return filtered;
+    });
+  }, []);
 
-  const resetStack = async () => {
-    console.log('Performing hard reset - clearing all decisions and fetching fresh randomized data');
+  const resetStack = useCallback(async () => {
+    console.log('Performing hard reset - clearing all decisions and fetching fresh data');
     
     // Clear all state
     setLikedPetitions([]);
     setShowResults(false);
-    setCurrentPetitions([]);
+    setAvailablePetitions([]);
     
-    // Refetch data to get a new randomized order
+    // Refetch data to get fresh petitions
     const { data: freshPetitions } = await refetch();
     if (freshPetitions) {
-      setCurrentPetitions(freshPetitions);
+      setAvailablePetitions(freshPetitions);
     }
-  };
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -129,8 +138,8 @@ const Index = () => {
           </div>
         </div>
 
-        {currentPetitions.length > 0 ? (
-          <SwipeableStack petitions={currentPetitions} onSwipe={handleSwipe} />
+        {availablePetitions.length > 0 ? (
+          <SwipeableStack petitions={availablePetitions} onSwipe={handleSwipe} />
         ) : (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold mb-4">{t('completion.title')}</h2>

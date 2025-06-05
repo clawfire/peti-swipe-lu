@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import SwipeableStack from "@/components/SwipeableStack";
 import ResultsModal from "@/components/ResultsModal";
 import { Button } from "@/components/ui/button";

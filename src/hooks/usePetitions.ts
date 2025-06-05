@@ -11,6 +11,7 @@ export const usePetitions = () => {
       const { data, error } = await supabase
         .from('petitions')
         .select('*')
+        .eq('status', 'SIGNATURE_EN_COURS')
         .order('filing_date', { ascending: false });
 
       if (error) {

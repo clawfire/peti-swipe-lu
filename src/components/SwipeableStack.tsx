@@ -58,6 +58,24 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     return { clientX: e.clientX, clientY: e.clientY };
   };
 
+  const isInteractiveElement = (element: Element | null): boolean => {
+    if (!element) return false;
+    
+    const interactiveSelectors = [
+      'button',
+      '[role="button"]',
+      'a',
+      'input',
+      'textarea',
+      'select',
+      '.pointer-events-auto'
+    ];
+    
+    return interactiveSelectors.some(selector => 
+      element.matches?.(selector) || element.closest?.(selector)
+    );
+  };
+
   const updateCardTransform = useCallback((x: number, y: number, immediate = false) => {
     if (!cardRef.current) return;
 
@@ -94,6 +112,12 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Check if the pointer started on an interactive element
+    if (isInteractiveElement(e.target as Element)) {
+      console.log('Pointer down on interactive element, ignoring swipe');
+      return;
+    }
+
     e.preventDefault();
     
     if (!cardRef.current || !cachedRect.current) return;
@@ -103,6 +127,7 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
+    console.log('Starting swipe gesture');
     setDragState({
       isDragging: true,
       startX: clientX,
@@ -161,6 +186,7 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     // Check if swipe should trigger based on distance or velocity
     const shouldSwipe = absX > threshold || Math.abs(dragState.velocity) > velocityThreshold;
     
+    console.log('Ending swipe gesture, shouldSwipe:', shouldSwipe);
     setDragState(prev => ({ ...prev, isDragging: false }));
     
     // Release pointer capture
@@ -169,6 +195,8 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     if (shouldSwipe) {
       const direction = dragState.currentX > 0 ? 'right' : 'left';
       const exitDistance = direction === 'right' ? window.innerWidth : -window.innerWidth;
+      
+      console.log('Swiping card', direction);
       
       // Animate card off screen with momentum
       cardRef.current.style.transition = 'transform 0.3s cubic-bezier(0.2, 0, 0.2, 1), opacity 0.3s ease-out';

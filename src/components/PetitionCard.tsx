@@ -55,6 +55,14 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
     return t(`status.${status}`) || status;
   };
 
+  const handleShowMoreClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Show more button clicked, current state:', showFullMotivation);
+    setShowFullMotivation(!showFullMotivation);
+    console.log('Show more button clicked, new state:', !showFullMotivation);
+  };
+
   return (
     <Card className="w-80 min-h-[500px] max-h-[600px] bg-white shadow-xl rounded-2xl overflow-hidden">
       <div className="p-6 h-full flex flex-col">
@@ -103,28 +111,33 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
               <span className="text-sm font-medium text-gray-700">{t('petition.motivation')}</span>
             </div>
             <div className="relative">
-              <p className={`text-sm text-gray-600 ${showFullMotivation ? '' : 'line-clamp-3'}`}>
+              <p className={`text-sm text-gray-600 transition-all duration-300 ${showFullMotivation ? '' : 'line-clamp-3'}`}>
                 {petition.motivation}
               </p>
               {petition.motivation.length > 150 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFullMotivation(!showFullMotivation)}
-                  className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-800"
-                >
-                  {showFullMotivation ? (
-                    <>
-                      <ChevronUp className="w-4 h-4 mr-1" />
-                      {t('petition.showLess')}
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4 mr-1" />
-                      {t('petition.showMore')}
-                    </>
-                  )}
-                </Button>
+                <div className="mt-2" onPointerDown={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShowMoreClick}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onPointerUp={(e) => e.stopPropagation()}
+                    onPointerMove={(e) => e.stopPropagation()}
+                    className="p-0 h-auto text-blue-600 hover:text-blue-800 pointer-events-auto relative z-20"
+                  >
+                    {showFullMotivation ? (
+                      <>
+                        <ChevronUp className="w-4 h-4 mr-1" />
+                        {t('petition.showLess')}
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        {t('petition.showMore')}
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
             </div>
           </div>

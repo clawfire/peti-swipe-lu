@@ -21,8 +21,8 @@ export type Database = {
           official_title: string
           petition_nbr: number
           residency_country: string
-          sign_nbr_electronic: number
-          sign_nbr_paper: number
+          sign_nbr_electronic: number | null
+          sign_nbr_paper: number | null
           status: string
           type: string
           updated_at: string
@@ -38,8 +38,8 @@ export type Database = {
           official_title: string
           petition_nbr: number
           residency_country: string
-          sign_nbr_electronic?: number
-          sign_nbr_paper?: number
+          sign_nbr_electronic?: number | null
+          sign_nbr_paper?: number | null
           status: string
           type: string
           updated_at?: string
@@ -55,8 +55,8 @@ export type Database = {
           official_title?: string
           petition_nbr?: number
           residency_country?: string
-          sign_nbr_electronic?: number
-          sign_nbr_paper?: number
+          sign_nbr_electronic?: number | null
+          sign_nbr_paper?: number | null
           status?: string
           type?: string
           updated_at?: string

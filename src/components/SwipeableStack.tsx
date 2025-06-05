@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import PetitionCard from "./PetitionCard";
 import { Petition } from "@/types/petition";
@@ -20,22 +21,31 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     return null;
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const getEventCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  };
+
+  const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
+    const { clientX, clientY } = getEventCoordinates(e);
     const rect = cardRef.current?.getBoundingClientRect();
     if (rect) {
-      const startX = e.clientX - rect.left - rect.width / 2;
-      const startY = e.clientY - rect.top - rect.height / 2;
+      const startX = clientX - rect.left - rect.width / 2;
+      const startY = clientY - rect.top - rect.height / 2;
       setDragOffset({ x: startX, y: startY });
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDragging || !cardRef.current) return;
     
+    const { clientX, clientY } = getEventCoordinates(e);
     const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2 - dragOffset.x;
-    const y = e.clientY - rect.top - rect.height / 2 - dragOffset.y;
+    const x = clientX - rect.left - rect.width / 2 - dragOffset.x;
+    const y = clientY - rect.top - rect.height / 2 - dragOffset.y;
     
     cardRef.current.style.transform = `translate(${x}px, ${y}px) rotate(${x * 0.1}deg)`;
     
@@ -54,11 +64,12 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
     }
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleEnd = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDragging || !cardRef.current) return;
     
+    const { clientX } = getEventCoordinates(e);
     const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2 - dragOffset.x;
+    const x = clientX - rect.left - rect.width / 2 - dragOffset.x;
     
     setIsDragging(false);
     
@@ -109,11 +120,14 @@ const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
       {/* Current card */}
       <div
         ref={cardRef}
-        className="relative cursor-grab active:cursor-grabbing z-10"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        className="relative cursor-grab active:cursor-grabbing z-10 touch-none"
+        onMouseDown={handleStart}
+        onMouseMove={handleMove}
+        onMouseUp={handleEnd}
+        onMouseLeave={handleEnd}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
       >
         <div className="swipe-overlay absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-200 opacity-0 z-10"></div>
         <PetitionCard petition={currentPetition} />

@@ -9,6 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      import_rate_limit: {
+        Row: {
+          created_at: string | null
+          id: string
+          import_count: number | null
+          ip_address: unknown
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          import_count?: number | null
+          ip_address: unknown
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          import_count?: number | null
+          ip_address?: unknown
+          window_start?: string | null
+        }
+        Relationships: []
+      }
+      petition_audit_log: {
+        Row: {
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          operation: string
+          record_id: string | null
+          table_name: string
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          record_id?: string | null
+          table_name: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          record_id?: string | null
+          table_name?: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       petitions: {
         Row: {
           association_name: string | null

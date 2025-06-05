@@ -7,10 +7,9 @@ import { Petition } from "@/types/petition";
 interface UseSwipeGestureProps {
   currentPetition: Petition;
   onSwipe: (petition: Petition, direction: 'left' | 'right') => void;
-  onNext: () => void;
 }
 
-export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGestureProps) => {
+export const useSwipeGesture = ({ currentPetition, onSwipe }: UseSwipeGestureProps) => {
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     startX: 0,
@@ -37,7 +36,7 @@ export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGe
     updateRect();
     window.addEventListener('resize', updateRect);
     return () => window.removeEventListener('resize', updateRect);
-  }, [currentPetition?.id]); // Update when petition changes
+  }, [currentPetition?.id]);
 
   // Cleanup animation frame on unmount
   useLayoutEffect(() => {
@@ -150,12 +149,12 @@ export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGe
       cardRef.current.style.transform = `translate3d(${exitDistance}px, ${dragState.currentY - 50}px, 0) rotate(${dragState.currentX * 0.2}deg)`;
       cardRef.current.style.opacity = '0';
       
+      // Call onSwipe after the animation completes - this will update the petitions array
       setTimeout(() => {
         onSwipe(currentPetition, direction);
-        onNext();
         
+        // Reset card styles for the next card
         if (cardRef.current) {
-          // Reset all styles
           cardRef.current.style.transition = '';
           cardRef.current.style.transform = '';
           cardRef.current.style.opacity = '';
@@ -180,7 +179,7 @@ export const useSwipeGesture = ({ currentPetition, onSwipe, onNext }: UseSwipeGe
         }
       }, 400);
     }
-  }, [dragState, currentPetition, onSwipe, onNext]);
+  }, [dragState, currentPetition, onSwipe]);
 
   const handlers: SwipeGestureHandlers = {
     handlePointerDown,

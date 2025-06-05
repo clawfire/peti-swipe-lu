@@ -1,5 +1,5 @@
 
-import { useState, useLayoutEffect, useMemo } from "react";
+import { useMemo } from "react";
 import PetitionCard from "./PetitionCard";
 import { Petition } from "@/types/petition";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
@@ -10,31 +10,17 @@ interface SwipeableStackProps {
 }
 
 const SwipeableStack = ({ petitions, onSwipe }: SwipeableStackProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  
-  // Memoize current and next petitions to prevent unnecessary re-renders
-  const currentPetition = useMemo(() => petitions[currentIndex], [petitions, currentIndex]);
-  const nextPetition = useMemo(() => petitions[currentIndex + 1], [petitions, currentIndex]);
+  // Get the current and next petitions from the array
+  const currentPetition = useMemo(() => petitions[0], [petitions]);
+  const nextPetition = useMemo(() => petitions[1], [petitions]);
 
   const { cardRef, handlers } = useSwipeGesture({
     currentPetition,
     onSwipe: (petition, direction) => {
+      console.log('SwipeableStack: Triggering swipe animation for petition:', petition.id);
       onSwipe(petition, direction);
-      // Move to next card after swipe
-      setCurrentIndex(prev => prev + 1);
-    },
-    onNext: () => {
-      // This is called after swipe animation completes
-      // Index is already updated in onSwipe, so no need to update here
     }
   });
-
-  // Reset index when petitions array changes (e.g., after reset)
-  useLayoutEffect(() => {
-    if (petitions.length > 0 && currentIndex >= petitions.length) {
-      setCurrentIndex(0);
-    }
-  }, [petitions.length, currentIndex]);
 
   if (!currentPetition) {
     return null;

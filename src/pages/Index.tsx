@@ -19,16 +19,23 @@ const Index = () => {
   // Update available petitions when data is loaded
   useEffect(() => {
     if (allPetitions.length > 0) {
-      console.log('Setting available petitions:', allPetitions.length);
-      setAvailablePetitions(allPetitions);
+      console.log('Setting available petitions from fresh data:', allPetitions.length);
+      setAvailablePetitions([...allPetitions]); // Create a new array to avoid reference issues
     }
   }, [allPetitions]);
 
   const handleSwipe = useCallback((petition: Petition, direction: 'left' | 'right') => {
-    console.log(`Swiped ${direction} on petition:`, petition.id);
+    console.log(`Processing swipe ${direction} on petition:`, petition.id);
     
+    // Add to liked petitions if swiped right
     if (direction === 'right') {
-      setLikedPetitions(prev => [...prev, petition]);
+      setLikedPetitions(prev => {
+        // Avoid duplicates
+        if (prev.some(p => p.id === petition.id)) {
+          return prev;
+        }
+        return [...prev, petition];
+      });
     }
     
     // Remove the swiped petition from available stack
@@ -36,9 +43,12 @@ const Index = () => {
       const filtered = prev.filter(p => p.id !== petition.id);
       console.log('Remaining petitions after swipe:', filtered.length);
       
-      // If no more petitions, show results after a delay
+      // If no more petitions, show results after a brief delay
       if (filtered.length === 0) {
-        setTimeout(() => setShowResults(true), 500);
+        setTimeout(() => {
+          console.log('No more petitions, showing results');
+          setShowResults(true);
+        }, 500);
       }
       
       return filtered;
@@ -46,17 +56,22 @@ const Index = () => {
   }, []);
 
   const resetStack = useCallback(async () => {
-    console.log('Performing hard reset - clearing all decisions and fetching fresh data');
+    console.log('Performing complete reset - clearing all state and fetching fresh data');
     
-    // Clear all state
+    // Clear all state immediately
     setLikedPetitions([]);
     setShowResults(false);
     setAvailablePetitions([]);
     
-    // Refetch data to get fresh petitions
-    const { data: freshPetitions } = await refetch();
-    if (freshPetitions) {
-      setAvailablePetitions(freshPetitions);
+    try {
+      // Refetch data to get fresh petitions
+      const { data: freshPetitions } = await refetch();
+      if (freshPetitions && freshPetitions.length > 0) {
+        console.log('Reset complete with fresh petitions:', freshPetitions.length);
+        setAvailablePetitions([...freshPetitions]);
+      }
+    } catch (error) {
+      console.error('Error during reset:', error);
     }
   }, [refetch]);
 

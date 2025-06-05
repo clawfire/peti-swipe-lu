@@ -16,6 +16,8 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
   const [showFullMotivation, setShowFullMotivation] = useState(false);
   const totalSignatures = (petition.sign_nbr_electronic || 0) + (petition.sign_nbr_paper || 0);
   const hotMeterPercentage = Math.min((totalSignatures / 5500) * 100, 100);
+  const isThresholdReached = petition.status === 'SEUIL_ATTEINT';
+  const isHighlyPopular = hotMeterPercentage > 80 || isThresholdReached;
   
   const formatDate = (dateString: string) => {
     try {
@@ -129,18 +131,29 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           </div>
         )}
 
-        {/* Hot Meter */}
+        {/* Hot Meter with enhanced styling */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-orange-500" />
+              <Flame className={`w-4 h-4 ${isHighlyPopular ? 'text-yellow-500' : 'text-orange-500'} ${isHighlyPopular ? 'animate-pulse' : ''}`} />
               <span className="text-sm font-medium text-gray-700">Popularité</span>
+              {isThresholdReached && (
+                <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full font-semibold animate-pulse">
+                  🔥 POPULAIRE
+                </span>
+              )}
             </div>
             <span className="text-sm text-gray-600">{totalSignatures}/5500</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className={`w-full bg-gray-200 rounded-full h-2 ${isHighlyPopular ? 'shadow-lg' : ''}`}>
             <div 
-              className="bg-gradient-to-r from-orange-400 to-red-500 h-2 rounded-full transition-all duration-300"
+              className={`h-2 rounded-full transition-all duration-300 ${
+                isThresholdReached 
+                  ? 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 shadow-lg shadow-orange-500/50 animate-pulse' 
+                  : isHighlyPopular 
+                    ? 'bg-gradient-to-r from-orange-400 to-red-500 shadow-md shadow-orange-400/30' 
+                    : 'bg-gradient-to-r from-orange-400 to-red-500'
+              }`}
               style={{ width: `${hotMeterPercentage}%` }}
             ></div>
           </div>
@@ -152,7 +165,9 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
             <Users className="w-4 h-4 text-green-600" />
             <span className="text-sm font-medium text-gray-700">Signatures</span>
           </div>
-          <div className="text-2xl font-bold text-green-600">{totalSignatures.toLocaleString()}</div>
+          <div className={`text-2xl font-bold ${isThresholdReached ? 'text-orange-600' : 'text-green-600'} ${isThresholdReached ? 'animate-pulse' : ''}`}>
+            {totalSignatures.toLocaleString()}
+          </div>
           <div className="text-xs text-gray-500">
             {petition.sign_nbr_electronic && `${petition.sign_nbr_electronic} électroniques`}
             {petition.sign_nbr_electronic && petition.sign_nbr_paper && ' • '}

@@ -67,6 +67,7 @@ export const translations = {
     'results.toSign': 'à signer.',
     'results.sign': 'Signer',
     'results.restart': 'Recommencer',
+    'results.startOver': 'Tout recommencer',
   },
   
   en: {
@@ -136,6 +137,7 @@ export const translations = {
     'results.toSign': 'to sign.',
     'results.sign': 'Sign',
     'results.restart': 'Start over',
+    'results.startOver': 'Start Over',
   },
   
   de: {
@@ -205,5 +207,6 @@ export const translations = {
     'results.toSign': 'zum Unterzeichnen ausgewählt.',
     'results.sign': 'Unterzeichnen',
     'results.restart': 'Neu starten',
+    'results.startOver': 'Von vorne beginnen',
   },
 };

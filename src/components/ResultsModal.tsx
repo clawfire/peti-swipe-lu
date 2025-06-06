@@ -1,8 +1,7 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Heart, RotateCcw, Users, RefreshCw } from "lucide-react";
+import { ExternalLink, Heart, RefreshCw } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Petition } from "@/types/petition";
 
@@ -37,12 +36,7 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset, onResetAll 
     window.open(url, '_blank');
   };
 
-  const handleResetAndClose = () => {
-    onReset();
-    onOpenChange(false);
-  };
-
-  const handleResetAllAndClose = () => {
+  const handleStartOverAndClose = () => {
     if (onResetAll) {
       onResetAll();
     }
@@ -69,11 +63,11 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset, onResetAll 
               {onResetAll && (
                 <Button 
                   variant="outline" 
-                  onClick={handleResetAllAndClose}
+                  onClick={handleStartOverAndClose}
                   className="flex items-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Start Over
+                  {t('results.startOver')}
                 </Button>
               )}
             </div>
@@ -126,22 +120,14 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset, onResetAll 
             </div>
 
             <div className="flex gap-3 pt-4 border-t">
-              <Button 
-                onClick={handleResetAndClose}
-                variant="outline"
-                className="flex-1"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                {t('results.restart')}
-              </Button>
               {onResetAll && (
                 <Button 
-                  onClick={handleResetAllAndClose}
+                  onClick={handleStartOverAndClose}
                   variant="outline"
                   className="flex-1"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Start Over
+                  {t('results.startOver')}
                 </Button>
               )}
               <Button 

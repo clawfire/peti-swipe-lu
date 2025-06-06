@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Heart, RotateCcw, Users } from "lucide-react";
+import { ExternalLink, Heart, RotateCcw, Users, RefreshCw } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Petition } from "@/types/petition";
 
@@ -11,9 +11,10 @@ interface ResultsModalProps {
   onOpenChange: (open: boolean) => void;
   likedPetitions: Petition[];
   onReset: () => void;
+  onResetAll?: () => void; // New prop for resetting all swiped petitions
 }
 
-const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsModalProps) => {
+const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset, onResetAll }: ResultsModalProps) => {
   const { t, language } = useTranslation();
   
   const getSignUrlPath = (lang: string) => {
@@ -41,6 +42,13 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
     onOpenChange(false);
   };
 
+  const handleResetAllAndClose = () => {
+    if (onResetAll) {
+      onResetAll();
+    }
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -54,9 +62,21 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
         {likedPetitions.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 mb-4">{t('results.none')}</p>
-            <Button onClick={() => onOpenChange(false)}>
-              {t('results.continue')}
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => onOpenChange(false)}>
+                {t('results.continue')}
+              </Button>
+              {onResetAll && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleResetAllAndClose}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Start Over
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -114,6 +134,16 @@ const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsMo
                 <RotateCcw className="w-4 h-4 mr-2" />
                 {t('results.restart')}
               </Button>
+              {onResetAll && (
+                <Button 
+                  onClick={handleResetAllAndClose}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Start Over
+                </Button>
+              )}
               <Button 
                 onClick={() => onOpenChange(false)}
                 className="flex-1"

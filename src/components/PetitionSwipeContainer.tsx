@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Petition } from "@/types/petition";
 import { usePetitions, useImportPetitions } from "@/hooks/usePetitions";
+import { useSwipedPetitions } from "@/hooks/useSwipedPetitions";
 import { useTranslation } from "@/hooks/useTranslation";
 import SwipeableStack from "@/components/SwipeableStack";
 import SwipeInstructions from "@/components/SwipeInstructions";
@@ -16,11 +17,20 @@ const PetitionSwipeContainer = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [allPetitions, setAllPetitions] = useState<Petition[]>([]);
   const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
-  const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [hasMorePages, setHasMorePages] = useState(true);
   const [hasSwipedOnce, setHasSwipedOnce] = useState(false);
   const { importFromJson } = useImportPetitions();
+
+  // Use the new swiped petitions hook
+  const {
+    swipedPetitionIds,
+    likedPetitions,
+    addSwipedPetition,
+    clearSwipedPetitions,
+    clearLikedPetitions,
+    isLoading: isSwipedDataLoading
+  } = useSwipedPetitions();
 
   const { data: petitionsResponse, isLoading, error, refetch } = usePetitions({
     page: currentPage,
@@ -28,25 +38,33 @@ const PetitionSwipeContainer = () => {
     language: language.toUpperCase()
   });
 
+  // Filter out already-swiped petitions
+  const filterSwipedPetitions = (petitions: Petition[]) => {
+    const filtered = petitions.filter(petition => !swipedPetitionIds.has(petition.id));
+    console.log(`Filtered ${petitions.length - filtered.length} already-swiped petitions, ${filtered.length} remaining`);
+    return filtered;
+  };
+
   // Update petitions when data loads
   useEffect(() => {
-    if (petitionsResponse) {
+    if (petitionsResponse && !isSwipedDataLoading) {
       const newPetitions = petitionsResponse.petitions;
+      const filteredNewPetitions = filterSwipedPetitions(newPetitions);
       
       if (currentPage === 0) {
         // First page - replace all petitions
-        setAllPetitions(newPetitions);
-        setCurrentPetitions(newPetitions);
+        setAllPetitions(filteredNewPetitions);
+        setCurrentPetitions(filteredNewPetitions);
       } else {
         // Subsequent pages - append to existing petitions
-        setAllPetitions(prev => [...prev, ...newPetitions]);
-        setCurrentPetitions(prev => [...prev, ...newPetitions]);
+        setAllPetitions(prev => [...prev, ...filteredNewPetitions]);
+        setCurrentPetitions(prev => [...prev, ...filteredNewPetitions]);
       }
       
       setHasMorePages(petitionsResponse.pagination.hasNext);
-      console.log(`Loaded page ${currentPage}, total petitions: ${allPetitions.length + newPetitions.length}`);
+      console.log(`Loaded page ${currentPage}, filtered petitions: ${filteredNewPetitions.length}, total: ${allPetitions.length + filteredNewPetitions.length}`);
     }
-  }, [petitionsResponse, currentPage]);
+  }, [petitionsResponse, currentPage, swipedPetitionIds, isSwipedDataLoading]);
 
   // Reset pagination when language changes (let React Query handle refetching)
   useEffect(() => {
@@ -56,6 +74,13 @@ const PetitionSwipeContainer = () => {
     // Don't clear petitions immediately - let React Query handle the refetch
   }, [language]);
 
+  // Re-filter current petitions when swiped data changes
+  useEffect(() => {
+    if (!isSwipedDataLoading) {
+      setCurrentPetitions(prev => filterSwipedPetitions(prev));
+    }
+  }, [swipedPetitionIds, isSwipedDataLoading]);
+
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     console.log(`Swiped ${direction} on petition:`, petition.official_title);
     
@@ -64,16 +89,8 @@ const PetitionSwipeContainer = () => {
       setHasSwipedOnce(true);
     }
     
-    // If swiped right, add to liked petitions
-    if (direction === 'right') {
-      setLikedPetitions(prev => {
-        // Check if petition is already liked to avoid duplicates
-        if (prev.find(p => p.id === petition.id)) {
-          return prev;
-        }
-        return [...prev, petition];
-      });
-    }
+    // Add to swiped petitions (this will also handle liked petitions)
+    addSwipedPetition(petition, direction);
     
     // Remove the swiped petition from the current list
     setCurrentPetitions(prev => prev.filter(p => p.id !== petition.id));
@@ -93,7 +110,6 @@ const PetitionSwipeContainer = () => {
       setCurrentPage(0);
       setAllPetitions([]);
       setCurrentPetitions([]);
-      setLikedPetitions([]);
       setHasMorePages(true);
       refetch();
     } catch (error) {
@@ -102,13 +118,23 @@ const PetitionSwipeContainer = () => {
   };
 
   const handleResetLikedPetitions = () => {
-    setLikedPetitions([]);
+    clearLikedPetitions();
+  };
+
+  const handleResetAllSwiped = () => {
+    clearSwipedPetitions();
+    // Refresh the current view with all petitions
+    setCurrentPage(0);
+    setAllPetitions([]);
+    setCurrentPetitions([]);
+    setHasMorePages(true);
+    refetch();
   };
 
   // Improved loading state logic - only show empty state if we have no data AND we're not loading
-  const isInitialLoading = isLoading && currentPetitions.length === 0 && currentPage === 0;
-  const isDatabaseEmpty = !isLoading && (!petitionsResponse || petitionsResponse.petitions.length === 0) && currentPage === 0;
-  const hasNoPetitionsLeft = !isLoading && currentPetitions.length === 0 && currentPage > 0;
+  const isInitialLoading = (isLoading || isSwipedDataLoading) && currentPetitions.length === 0 && currentPage === 0;
+  const isDatabaseEmpty = !isLoading && !isSwipedDataLoading && (!petitionsResponse || petitionsResponse.petitions.length === 0) && currentPage === 0;
+  const hasNoPetitionsLeft = !isLoading && !isSwipedDataLoading && currentPetitions.length === 0 && currentPage > 0;
 
   if (error) {
     return (
@@ -153,6 +179,7 @@ const PetitionSwipeContainer = () => {
         onOpenChange={setShowResultsModal}
         likedPetitions={likedPetitions}
         onReset={handleResetLikedPetitions}
+        onResetAll={handleResetAllSwiped}
       />
     </>
   );

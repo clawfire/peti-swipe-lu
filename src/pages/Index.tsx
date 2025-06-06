@@ -5,8 +5,9 @@ import { usePetitions, useImportPetitions } from "@/hooks/usePetitions";
 import SwipeableStack from "@/components/SwipeableStack";
 import LanguageSelector from "@/components/LanguageSelector";
 import ResultsModal from "@/components/ResultsModal";
+import SwipeInstructions from "@/components/SwipeInstructions";
+import FloatingLikedButton from "@/components/FloatingLikedButton";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
 import { Petition } from "@/types/petition";
 
 const Index = () => {
@@ -17,6 +18,7 @@ const Index = () => {
   const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [hasMorePages, setHasMorePages] = useState(true);
+  const [hasSwipedOnce, setHasSwipedOnce] = useState(false);
   const { importFromJson } = useImportPetitions();
 
   const { data: petitionsResponse, isLoading, error, refetch } = usePetitions({
@@ -57,6 +59,11 @@ const Index = () => {
 
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     console.log(`Swiped ${direction} on petition:`, petition.official_title);
+    
+    // Mark that user has swiped at least once
+    if (!hasSwipedOnce) {
+      setHasSwipedOnce(true);
+    }
     
     // If swiped right, add to liked petitions
     if (direction === 'right') {
@@ -129,17 +136,6 @@ const Index = () => {
             <p className="text-lg text-gray-600">{t('app.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
-            {likedPetitions.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowResultsModal(true)}
-                className="relative"
-              >
-                <Heart className="w-4 h-4 mr-2 text-pink-500 fill-pink-500" />
-                <span className="font-semibold">{likedPetitions.length}</span>
-              </Button>
-            )}
             <Button variant="outline" size="sm" onClick={handleImportFromJson}>
               Import JSON
             </Button>
@@ -162,7 +158,6 @@ const Index = () => {
             {likedPetitions.length > 0 ? (
               <div className="space-y-4">
                 <Button onClick={() => setShowResultsModal(true)}>
-                  <Heart className="w-4 h-4 mr-2 text-pink-500 fill-pink-500" />
                   View {likedPetitions.length} Liked Petition{likedPetitions.length > 1 ? 's' : ''}
                 </Button>
                 <Button variant="outline" onClick={handleImportFromJson}>
@@ -177,6 +172,7 @@ const Index = () => {
           </div>
         ) : (
           <>
+            {!hasSwipedOnce && <SwipeInstructions />}
             <SwipeableStack petitions={currentPetitions} onSwipe={handleSwipe} />
             {isLoading && currentPetitions.length > 0 && (
               <div className="text-center mt-4">
@@ -188,6 +184,12 @@ const Index = () => {
             )}
           </>
         )}
+
+        {/* Floating liked button */}
+        <FloatingLikedButton 
+          likedCount={likedPetitions.length}
+          onClick={() => setShowResultsModal(true)}
+        />
 
         <ResultsModal
           open={showResultsModal}

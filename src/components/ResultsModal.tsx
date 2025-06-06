@@ -1,7 +1,8 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Heart, RefreshCw } from "lucide-react";
+import { ExternalLink, Heart, RefreshCw, Users } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Petition } from "@/types/petition";
 

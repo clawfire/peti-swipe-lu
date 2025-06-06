@@ -9,63 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      api_rate_limits: {
-        Row: {
-          created_at: string | null
-          endpoint: string
-          id: string
-          identifier: string
-          request_count: number | null
-          window_start: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          endpoint: string
-          id?: string
-          identifier: string
-          request_count?: number | null
-          window_start?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          endpoint?: string
-          id?: string
-          identifier?: string
-          request_count?: number | null
-          window_start?: string | null
-        }
-        Relationships: []
-      }
-      petition_audit_log: {
-        Row: {
-          details: Json | null
-          id: string
-          operation: string
-          record_id: string | null
-          table_name: string
-          timestamp: string | null
-          user_id: string | null
-        }
-        Insert: {
-          details?: Json | null
-          id?: string
-          operation: string
-          record_id?: string | null
-          table_name: string
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          details?: Json | null
-          id?: string
-          operation?: string
-          record_id?: string | null
-          table_name?: string
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       petitions: {
         Row: {
           association_name: string | null
@@ -146,15 +89,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_rate_limit: {
-        Args: {
-          p_identifier: string
-          p_endpoint: string
-          p_limit?: number
-          p_window_minutes?: number
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

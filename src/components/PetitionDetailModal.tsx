@@ -87,6 +87,7 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
     }
     
     return parts.join(' • ');
+  };
 
   // Use official_title if available, otherwise fall back to title
   const displayTitle = petition.official_title || petition.title || '';

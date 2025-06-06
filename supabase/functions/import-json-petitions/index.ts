@@ -1,192 +1,13 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { JsonPetitionData, ImportResponse, ImportRequest } from './types.ts';
+import { mapJsonToPetition } from './petitionMapper.ts';
+import { clearExistingPetitions, insertPetitionsInBatches } from './databaseOperations.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface JsonPetitionData {
-  // Handle various possible field names from different JSON structures
-  id?: string;
-  number?: number; // Updated to match actual JSON field
-  petitionNumber?: number;
-  petition_number?: number;
-  petition_nbr?: number;
-  filingDate?: string;
-  filing_date?: string;
-  date?: string;
-  depositDate?: string; // Added for deposit date
-  officialTitle?: string;
-  official_title?: string;
-  title?: string;
-  type?: string;
-  status?: string;
-  associationRole?: string;
-  association_role?: string;
-  associationName?: string;
-  association_name?: string;
-  residencyCountry?: string;
-  residency_country?: string;
-  country?: string;
-  goal?: string;
-  purpose?: string;
-  signatureStartDate?: string;
-  signature_start_date?: string;
-  signatureFrom?: string; // Added for signature start
-  signatureEndDate?: string;
-  signature_end_date?: string;
-  signatureTo?: string; // Added for signature end
-  signaturesRequired?: number;
-  signatures_required?: number;
-  electronicalSignatureCount?: number; // Updated to match actual JSON field
-  electronicSignatures?: number;
-  electronic_signatures?: number;
-  sign_nbr_electronic?: number;
-  paperSignatureCount?: number; // Updated to match actual JSON field
-  paperSignatures?: number;
-  paper_signatures?: number;
-  sign_nbr_paper?: number;
-  motivation?: string;
-  isClosed?: boolean;
-  is_closed?: boolean;
-  closed?: boolean;
-  url?: string;
-  [key: string]: any; // Allow for additional fields
-}
-
-const parseDate = (dateStr: string | undefined): string | null => {
-  if (!dateStr || dateStr.trim() === '') {
-    return null;
-  }
-  
-  // Handle ISO date strings with time
-  if (dateStr.includes('T')) {
-    const date = new Date(dateStr);
-    if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
-    }
-  }
-  
-  // Handle various date formats
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
-    return null;
-  }
-  
-  return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
-};
-
-const getFieldValue = (data: JsonPetitionData, ...fieldNames: string[]): any => {
-  for (const fieldName of fieldNames) {
-    if (data[fieldName] !== undefined && data[fieldName] !== null && data[fieldName] !== '') {
-      return data[fieldName];
-    }
-  }
-  return null;
-};
-
-// Calculate signatures required based on filing date
-const calculateSignaturesRequired = (filingDate: string): number => {
-  try {
-    const filing = new Date(filingDate);
-    const marchFirst2025 = new Date('2025-03-01');
-    return filing < marchFirst2025 ? 4500 : 5500;
-  } catch {
-    return 5500; // Default to current threshold if date parsing fails
-  }
-};
-
-// Determine petition status based on signature count and threshold
-const determinePetitionStatus = (totalSignatures: number, signaturesRequired: number, originalStatus?: string): string => {
-  // If petition already has a closed status, keep it
-  if (originalStatus === 'CLOTUREE') {
-    return 'CLOTUREE';
-  }
-  
-  // Check if threshold is reached
-  if (totalSignatures >= signaturesRequired) {
-    return 'SEUIL_ATTEINT';
-  }
-  
-  // Default to signature collection in progress
-  return originalStatus || 'SIGNATURE_EN_COURS';
-};
-
-const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | null => {
-  try {
-    console.log(`Processing record ${index}:`, JSON.stringify(jsonData, null, 2));
-
-    // Get title from multiple possible field names
-    const officialTitle = getFieldValue(jsonData, 'officialTitle', 'official_title', 'title');
-    if (!officialTitle) {
-      console.warn(`Record ${index}: Missing official title`);
-      return null;
-    }
-
-    // Get date from multiple possible field names - try depositDate first, then others
-    const filingDateStr = getFieldValue(jsonData, 'depositDate', 'filingDate', 'filing_date', 'date');
-    let parsedFilingDate = null;
-    
-    if (filingDateStr) {
-      parsedFilingDate = parseDate(filingDateStr);
-      if (!parsedFilingDate) {
-        console.warn(`Record ${index}: Invalid filing date: "${filingDateStr}"`);
-      }
-    }
-
-    // If no filing date is found, use current date as fallback
-    if (!parsedFilingDate) {
-      parsedFilingDate = new Date().toISOString().split('T')[0];
-      console.warn(`Record ${index}: No valid filing date found, using current date as fallback`);
-    }
-
-    // Get signature counts
-    const signElectronic = getFieldValue(jsonData, 'electronicalSignatureCount', 'electronicSignatures', 'electronic_signatures', 'sign_nbr_electronic') || 0;
-    const signPaper = getFieldValue(jsonData, 'paperSignatureCount', 'paperSignatures', 'paper_signatures', 'sign_nbr_paper') || 0;
-    const totalSignatures = signElectronic + signPaper;
-
-    // Calculate signatures required based on filing date
-    const signaturesRequired = calculateSignaturesRequired(parsedFilingDate);
-
-    // Get original status and determine final status
-    const originalStatus = getFieldValue(jsonData, 'status');
-    const finalStatus = determinePetitionStatus(totalSignatures, signaturesRequired, originalStatus);
-
-    // Get other fields with fallbacks
-    const type = getFieldValue(jsonData, 'type') || 'Unknown';
-    const residencyCountry = getFieldValue(jsonData, 'residencyCountry', 'residency_country', 'country') || 'Luxembourg';
-
-    // Build the petition object
-    const petition = {
-      external_id: getFieldValue(jsonData, 'id') || null,
-      petition_nbr: getFieldValue(jsonData, 'number', 'petitionNumber', 'petition_number', 'petition_nbr') || null,
-      filing_date: parsedFilingDate,
-      official_title: officialTitle,
-      title: officialTitle, // Map to the single title field
-      type: type,
-      status: finalStatus, // Use calculated status
-      association_role: getFieldValue(jsonData, 'associationRole', 'association_role') || null,
-      association_name: getFieldValue(jsonData, 'associationName', 'association_name') || null,
-      residency_country: residencyCountry,
-      purpose: getFieldValue(jsonData, 'goal', 'purpose') || null,
-      signature_start_date: parseDate(getFieldValue(jsonData, 'signatureFrom', 'signatureStartDate', 'signature_start_date')),
-      signature_end_date: parseDate(getFieldValue(jsonData, 'signatureTo', 'signatureEndDate', 'signature_end_date')),
-      signatures_required: signaturesRequired, // Set calculated signatures required
-      sign_nbr_electronic: signElectronic,
-      sign_nbr_paper: signPaper,
-      motivation: getFieldValue(jsonData, 'motivation') || null,
-      is_closed: getFieldValue(jsonData, 'isClosed', 'is_closed', 'closed') || false,
-      url: getFieldValue(jsonData, 'url') || null,
-    };
-
-    console.log(`Record ${index}: Successfully parsed petition with ${totalSignatures}/${signaturesRequired} signatures, status: ${finalStatus}:`, JSON.stringify(petition, null, 2));
-    return petition;
-
-  } catch (error) {
-    console.error(`Record ${index}: Parsing error:`, error);
-    return null;
-  }
 };
 
 serve(async (req) => {
@@ -203,11 +24,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get request body to see if a specific file was requested
-    let bucketName = 'petitions-file'; // Changed default to match your bucket
+    let bucketName = 'petitions-file';
     let fileName = 'petitions.json';
     
     try {
-      const body = await req.json();
+      const body: ImportRequest = await req.json();
       if (body.bucketName) bucketName = body.bucketName;
       if (body.fileName) fileName = body.fileName;
       console.log(`Using bucket: ${bucketName}, file: ${fileName}`);
@@ -238,7 +59,7 @@ serve(async (req) => {
     }
 
     // Handle different JSON structures - could be array or object with array property
-    let petitionsArray;
+    let petitionsArray: JsonPetitionData[];
     if (Array.isArray(jsonData)) {
       petitionsArray = jsonData;
     } else if (jsonData.petitions && Array.isArray(jsonData.petitions)) {
@@ -293,77 +114,26 @@ serve(async (req) => {
     console.log('Starting database transaction...');
     
     // Delete existing petitions
-    const { error: deleteError } = await supabase
-      .from('petitions')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
-
-    if (deleteError) {
-      throw new Error(`Failed to clear existing data: ${deleteError.message}`);
-    }
-
-    console.log('Existing petition data cleared');
+    await clearExistingPetitions(supabase);
 
     // Insert new petitions in batches
-    const batchSize = 50;
-    let insertedCount = 0;
-    let insertErrors = 0;
-
-    for (let i = 0; i < petitionsData.length; i += batchSize) {
-      const batch = petitionsData.slice(i, i + batchSize);
-      
-      try {
-        const { data, error: insertError } = await supabase
-          .from('petitions')
-          .insert(batch)
-          .select('id');
-
-        if (insertError) {
-          console.error(`Insert error for batch ${Math.floor(i / batchSize) + 1}:`, insertError);
-          insertErrors++;
-          
-          // Try inserting individual records to identify problematic ones
-          for (const petition of batch) {
-            try {
-              const { data: singleData, error: singleError } = await supabase
-                .from('petitions')
-                .insert([petition])
-                .select('id');
-              
-              if (singleError) {
-                console.error(`Failed to insert petition ${petition.external_id || petition.petition_nbr}:`, singleError);
-                insertErrors++;
-              } else {
-                insertedCount++;
-              }
-            } catch (singleErr) {
-              console.error(`Exception inserting petition ${petition.external_id || petition.petition_nbr}:`, singleErr);
-              insertErrors++;
-            }
-          }
-        } else {
-          insertedCount += data?.length || 0;
-          console.log(`Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(petitionsData.length / batchSize)}: ${data?.length} records`);
-        }
-      } catch (batchError) {
-        console.error(`Batch insert exception for batch ${Math.floor(i / batchSize) + 1}:`, batchError);
-        insertErrors++;
-      }
-    }
+    const { insertedCount, insertErrors } = await insertPetitionsInBatches(supabase, petitionsData);
 
     console.log(`Import completed. Total petitions imported: ${insertedCount}, insert errors: ${insertErrors}, petitions with threshold reached: ${thresholdReachedCount}`);
 
+    const response: ImportResponse = {
+      success: true,
+      message: `Successfully imported ${insertedCount} petitions from JSON`,
+      totalRecords: petitionsArray.length,
+      parsed: petitionsData.length,
+      parseErrors: errorCount,
+      imported: insertedCount,
+      insertErrors: insertErrors,
+      thresholdReached: thresholdReachedCount
+    };
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Successfully imported ${insertedCount} petitions from JSON`,
-        totalRecords: petitionsArray.length,
-        parsed: petitionsData.length,
-        parseErrors: errorCount,
-        imported: insertedCount,
-        insertErrors: insertErrors,
-        thresholdReached: thresholdReachedCount
-      }),
+      JSON.stringify(response),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -373,12 +143,14 @@ serve(async (req) => {
   } catch (error) {
     console.error('Import error:', error);
     
+    const errorResponse: ImportResponse = {
+      success: false,
+      error: error.message,
+      details: 'Check function logs for more information'
+    };
+    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-        details: 'Check function logs for more information'
-      }),
+      JSON.stringify(errorResponse),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

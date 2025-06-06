@@ -8,24 +8,46 @@ const corsHeaders = {
 };
 
 interface JsonPetitionData {
+  // Handle various possible field names from different JSON structures
   id?: string;
   petitionNumber?: number;
+  petition_number?: number;
+  petition_nbr?: number;
   filingDate?: string;
+  filing_date?: string;
+  date?: string;
   officialTitle?: string;
+  official_title?: string;
+  title?: string;
   type?: string;
   status?: string;
   associationRole?: string;
+  association_role?: string;
   associationName?: string;
+  association_name?: string;
   residencyCountry?: string;
+  residency_country?: string;
+  country?: string;
   goal?: string;
+  purpose?: string;
   signatureStartDate?: string;
+  signature_start_date?: string;
   signatureEndDate?: string;
+  signature_end_date?: string;
   signaturesRequired?: number;
+  signatures_required?: number;
   electronicSignatures?: number;
+  electronic_signatures?: number;
+  sign_nbr_electronic?: number;
   paperSignatures?: number;
+  paper_signatures?: number;
+  sign_nbr_paper?: number;
   motivation?: string;
   isClosed?: boolean;
+  is_closed?: boolean;
+  closed?: boolean;
   url?: string;
+  [key: string]: any; // Allow for additional fields
 }
 
 const parseDate = (dateStr: string | undefined): string | null => {
@@ -42,64 +64,77 @@ const parseDate = (dateStr: string | undefined): string | null => {
   return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
 };
 
+const getFieldValue = (data: JsonPetitionData, ...fieldNames: string[]): any => {
+  for (const fieldName of fieldNames) {
+    if (data[fieldName] !== undefined && data[fieldName] !== null && data[fieldName] !== '') {
+      return data[fieldName];
+    }
+  }
+  return null;
+};
+
 const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | null => {
   try {
-    // Validate required fields
-    if (!jsonData.officialTitle) {
+    console.log(`Processing record ${index}:`, JSON.stringify(jsonData, null, 2));
+
+    // Get title from multiple possible field names
+    const officialTitle = getFieldValue(jsonData, 'officialTitle', 'official_title', 'title');
+    if (!officialTitle) {
       console.warn(`Record ${index}: Missing official title`);
       return null;
     }
 
-    if (!jsonData.filingDate) {
-      console.warn(`Record ${index}: Missing filing date`);
-      return null;
+    // Get date from multiple possible field names - make it optional for now
+    const filingDateStr = getFieldValue(jsonData, 'filingDate', 'filing_date', 'date');
+    let parsedFilingDate = null;
+    
+    if (filingDateStr) {
+      parsedFilingDate = parseDate(filingDateStr);
+      if (!parsedFilingDate) {
+        console.warn(`Record ${index}: Invalid filing date: "${filingDateStr}"`);
+      }
     }
 
-    if (!jsonData.type) {
-      console.warn(`Record ${index}: Missing type`);
-      return null;
-    }
-
-    if (!jsonData.status) {
-      console.warn(`Record ${index}: Missing status`);
-      return null;
-    }
-
-    const parsedFilingDate = parseDate(jsonData.filingDate);
+    // If no filing date is found, use current date as fallback
     if (!parsedFilingDate) {
-      console.warn(`Record ${index}: Invalid filing date: "${jsonData.filingDate}"`);
-      return null;
+      parsedFilingDate = new Date().toISOString().split('T')[0];
+      console.warn(`Record ${index}: No valid filing date found, using current date as fallback`);
     }
+
+    // Get other fields with fallbacks
+    const type = getFieldValue(jsonData, 'type') || 'Unknown';
+    const status = getFieldValue(jsonData, 'status') || 'Unknown';
+    const residencyCountry = getFieldValue(jsonData, 'residencyCountry', 'residency_country', 'country') || 'Luxembourg';
 
     // Build the petition object
     const petition = {
-      external_id: jsonData.id || null,
-      petition_nbr: jsonData.petitionNumber || null,
+      external_id: getFieldValue(jsonData, 'id') || null,
+      petition_nbr: getFieldValue(jsonData, 'petitionNumber', 'petition_number', 'petition_nbr') || null,
       filing_date: parsedFilingDate,
-      official_title: jsonData.officialTitle,
+      official_title: officialTitle,
       title_de: null,
       title_en: null,
-      title_fr: jsonData.officialTitle, // Use officialTitle as French title
-      type: jsonData.type,
-      status: jsonData.status,
-      association_role: jsonData.associationRole || null,
-      association_name: jsonData.associationName || null,
-      residency_country: jsonData.residencyCountry || 'Luxembourg', // Default to Luxembourg if missing
-      purpose: jsonData.goal || null, // Map goal to purpose
+      title_fr: officialTitle, // Use officialTitle as French title
+      type: type,
+      status: status,
+      association_role: getFieldValue(jsonData, 'associationRole', 'association_role') || null,
+      association_name: getFieldValue(jsonData, 'associationName', 'association_name') || null,
+      residency_country: residencyCountry,
+      purpose: getFieldValue(jsonData, 'goal', 'purpose') || null,
       purpose_de: null,
       purpose_en: null,
-      purpose_fr: jsonData.goal || null, // Use goal as French purpose
-      signature_start_date: parseDate(jsonData.signatureStartDate),
-      signature_end_date: parseDate(jsonData.signatureEndDate),
-      signatures_required: jsonData.signaturesRequired || null,
-      sign_nbr_electronic: jsonData.electronicSignatures || 0,
-      sign_nbr_paper: jsonData.paperSignatures || 0,
-      motivation: jsonData.motivation || null,
-      is_closed: jsonData.isClosed || false,
-      url: jsonData.url || null,
+      purpose_fr: getFieldValue(jsonData, 'goal', 'purpose') || null,
+      signature_start_date: parseDate(getFieldValue(jsonData, 'signatureStartDate', 'signature_start_date')),
+      signature_end_date: parseDate(getFieldValue(jsonData, 'signatureEndDate', 'signature_end_date')),
+      signatures_required: getFieldValue(jsonData, 'signaturesRequired', 'signatures_required') || null,
+      sign_nbr_electronic: getFieldValue(jsonData, 'electronicSignatures', 'electronic_signatures', 'sign_nbr_electronic') || 0,
+      sign_nbr_paper: getFieldValue(jsonData, 'paperSignatures', 'paper_signatures', 'sign_nbr_paper') || 0,
+      motivation: getFieldValue(jsonData, 'motivation') || null,
+      is_closed: getFieldValue(jsonData, 'isClosed', 'is_closed', 'closed') || false,
+      url: getFieldValue(jsonData, 'url') || null,
     };
 
-    console.log(`Record ${index}: Successfully parsed petition ${petition.external_id || petition.petition_nbr}`);
+    console.log(`Record ${index}: Successfully parsed petition:`, JSON.stringify(petition, null, 2));
     return petition;
 
   } catch (error) {
@@ -122,15 +157,16 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get request body to see if a specific file was requested
-    let bucketName = 'petitions';
+    let bucketName = 'petitions-file'; // Changed default to match your bucket
     let fileName = 'petitions.json';
     
     try {
       const body = await req.json();
       if (body.bucketName) bucketName = body.bucketName;
       if (body.fileName) fileName = body.fileName;
+      console.log(`Using bucket: ${bucketName}, file: ${fileName}`);
     } catch {
-      // Use defaults if no body or invalid JSON
+      console.log(`Using default bucket: ${bucketName}, file: ${fileName}`);
     }
 
     console.log(`Fetching JSON data from storage bucket: ${bucketName}/${fileName}`);
@@ -155,14 +191,29 @@ serve(async (req) => {
       throw new Error(`Failed to parse JSON: ${parseError.message}`);
     }
 
-    // Ensure data is an array
-    const petitionsArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+    // Handle different JSON structures - could be array or object with array property
+    let petitionsArray;
+    if (Array.isArray(jsonData)) {
+      petitionsArray = jsonData;
+    } else if (jsonData.petitions && Array.isArray(jsonData.petitions)) {
+      petitionsArray = jsonData.petitions;
+    } else if (jsonData.data && Array.isArray(jsonData.data)) {
+      petitionsArray = jsonData.data;
+    } else {
+      // If it's a single object, wrap it in an array
+      petitionsArray = [jsonData];
+    }
     
     if (petitionsArray.length === 0) {
       throw new Error('JSON file contains no petition data');
     }
 
     console.log(`Found ${petitionsArray.length} petition records in JSON`);
+
+    // Show sample of first record for debugging
+    if (petitionsArray.length > 0) {
+      console.log('Sample raw record:', JSON.stringify(petitionsArray[0], null, 2));
+    }
 
     // Parse data
     const petitionsData: any[] = [];

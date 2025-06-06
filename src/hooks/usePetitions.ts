@@ -106,7 +106,7 @@ export const usePetitions = (params: PaginationParams = {}) => {
 export const useImportPetitions = () => {
   const { toast } = useToast();
 
-  const importFromJson = async (bucketName = 'petitions', fileName = 'petitions.json') => {
+  const importFromJson = async (bucketName = 'petitions-file', fileName = 'petitions.json') => {
     try {
       console.log(`Starting import from ${bucketName}/${fileName}...`);
       

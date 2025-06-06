@@ -1,8 +1,14 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Languages } from 'lucide-react';
 import { useTranslation, Language } from '@/hooks/useTranslation';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const LanguageSelector = () => {
   const { language, setLanguage } = useTranslation();
@@ -13,27 +19,35 @@ const LanguageSelector = () => {
     { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
   ];
 
+  const currentLanguage = languages.find(lang => lang.code === language);
+
   return (
     <div className="flex items-center gap-2">
       <Languages className="w-4 h-4 text-gray-600" />
-      <div className="flex gap-1">
-        {languages.map((lang) => (
-          <Button
-            key={lang.code}
-            variant={language === lang.code ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setLanguage(lang.code)}
-            className={`px-3 py-1 text-sm ${
-              language === lang.code 
-                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <span className="mr-1">{lang.flag}</span>
-            {lang.code.toUpperCase()}
-          </Button>
-        ))}
-      </div>
+      <Select value={language} onValueChange={(value: Language) => setLanguage(value)}>
+        <SelectTrigger className="w-24 h-8 text-sm border-gray-300 bg-white">
+          <SelectValue>
+            <span className="flex items-center gap-1">
+              <span>{currentLanguage?.flag}</span>
+              <span>{language.toUpperCase()}</span>
+            </span>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent className="bg-white border border-gray-200 shadow-lg">
+          {languages.map((lang) => (
+            <SelectItem 
+              key={lang.code} 
+              value={lang.code}
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50"
+            >
+              <span className="flex items-center gap-2">
+                <span>{lang.flag}</span>
+                <span>{lang.code.toUpperCase()}</span>
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

@@ -3,6 +3,8 @@
 **PETINDER** is a playful prototype that reimagines civic engagement by turning Luxembourg’s public petition platform into a swipeable, mobile-friendly experience.  
 Built during a hackathon, this project was also an **experiment in coding with AI agents** to evaluate how far we can go with minimal manual intervention.
 
+[♻️ Published re-use on data.public.lu](https://data.public.lu/fr/reuses/petinder/).
+
 ## 🚀 What It Does
 
 * Fetches and displays live petitions from the Chambre des Députés via a reverse-engineered API

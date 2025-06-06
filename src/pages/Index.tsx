@@ -19,13 +19,21 @@ const Index = () => {
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [hasMorePages, setHasMorePages] = useState(true);
   const [hasSwipedOnce, setHasSwipedOnce] = useState(false);
+  const [languageInitialized, setLanguageInitialized] = useState(false);
   const { importFromJson } = useImportPetitions();
 
   const { data: petitionsResponse, isLoading, error, refetch } = usePetitions({
     page: currentPage,
     size: 10,
-    language: language.toUpperCase() // Keep for potential future filtering
+    language: language.toUpperCase()
   });
+
+  // Initialize language state to prevent reset on first load
+  useEffect(() => {
+    if (!languageInitialized) {
+      setLanguageInitialized(true);
+    }
+  }, [languageInitialized]);
 
   // Update petitions when data loads
   useEffect(() => {
@@ -47,15 +55,17 @@ const Index = () => {
     }
   }, [petitionsResponse, currentPage]);
 
-  // Reset when language changes (for potential future filtering)
+  // Only reset when language changes AND it's not the initial load
   useEffect(() => {
-    console.log(`Language changed to: ${language}, resetting pagination`);
-    setCurrentPage(0);
-    setAllPetitions([]);
-    setCurrentPetitions([]);
-    setLikedPetitions([]);
-    setHasMorePages(true);
-  }, [language]);
+    if (languageInitialized) {
+      console.log(`Language changed to: ${language}, resetting pagination`);
+      setCurrentPage(0);
+      setAllPetitions([]);
+      setCurrentPetitions([]);
+      setLikedPetitions([]);
+      setHasMorePages(true);
+    }
+  }, [language, languageInitialized]);
 
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     console.log(`Swiped ${direction} on petition:`, petition.official_title);
@@ -106,6 +116,9 @@ const Index = () => {
     setLikedPetitions([]);
   };
 
+  // Check if database is empty (no petitions and not loading)
+  const isDatabaseEmpty = !isLoading && (!petitionsResponse || petitionsResponse.petitions.length === 0) && currentPage === 0;
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
@@ -132,15 +145,12 @@ const Index = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">{t('app.title')}</h1>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              {t('app.title')}
+            </h1>
             <p className="text-lg text-gray-600">{t('app.subtitle')}</p>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={handleImportFromJson}>
-              Import JSON
-            </Button>
-            <LanguageSelector />
-          </div>
+          <LanguageSelector />
         </div>
 
         {isLoading && currentPetitions.length === 0 ? (
@@ -148,13 +158,21 @@ const Index = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600">{t('loading.petitions')}</p>
           </div>
-        ) : !currentPetitions || currentPetitions.length === 0 ? (
+        ) : isDatabaseEmpty ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('noPetitions.title')}</h2>
             <p className="text-gray-600 mb-6">{t('noPetitions.description')}</p>
             <p className="text-sm text-gray-500 mb-4">
               Petitions are now stored locally in the database. You can import new data from a JSON file.
             </p>
+            <Button onClick={handleImportFromJson}>
+              Import Petitions from JSON
+            </Button>
+          </div>
+        ) : !currentPetitions || currentPetitions.length === 0 ? (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('noPetitions.title')}</h2>
+            <p className="text-gray-600 mb-6">{t('noPetitions.description')}</p>
             {likedPetitions.length > 0 ? (
               <div className="space-y-4">
                 <Button onClick={() => setShowResultsModal(true)}>

@@ -71,52 +71,88 @@ export type Database = {
           association_name: string | null
           association_role: string | null
           created_at: string
+          external_id: string | null
           filing_date: string
-          goal: string | null
           id: string
+          is_closed: boolean | null
           motivation: string | null
           official_title: string
-          petition_nbr: number
+          petition_nbr: number | null
+          purpose: string | null
+          purpose_de: string | null
+          purpose_en: string | null
+          purpose_fr: string | null
           residency_country: string
           sign_nbr_electronic: number | null
           sign_nbr_paper: number | null
+          signature_end_date: string | null
+          signature_start_date: string | null
+          signatures_required: number | null
           status: string
+          title_de: string | null
+          title_en: string | null
+          title_fr: string | null
           type: string
           updated_at: string
+          url: string | null
         }
         Insert: {
           association_name?: string | null
           association_role?: string | null
           created_at?: string
+          external_id?: string | null
           filing_date: string
-          goal?: string | null
           id?: string
+          is_closed?: boolean | null
           motivation?: string | null
           official_title: string
-          petition_nbr: number
+          petition_nbr?: number | null
+          purpose?: string | null
+          purpose_de?: string | null
+          purpose_en?: string | null
+          purpose_fr?: string | null
           residency_country: string
           sign_nbr_electronic?: number | null
           sign_nbr_paper?: number | null
+          signature_end_date?: string | null
+          signature_start_date?: string | null
+          signatures_required?: number | null
           status: string
+          title_de?: string | null
+          title_en?: string | null
+          title_fr?: string | null
           type: string
           updated_at?: string
+          url?: string | null
         }
         Update: {
           association_name?: string | null
           association_role?: string | null
           created_at?: string
+          external_id?: string | null
           filing_date?: string
-          goal?: string | null
           id?: string
+          is_closed?: boolean | null
           motivation?: string | null
           official_title?: string
-          petition_nbr?: number
+          petition_nbr?: number | null
+          purpose?: string | null
+          purpose_de?: string | null
+          purpose_en?: string | null
+          purpose_fr?: string | null
           residency_country?: string
           sign_nbr_electronic?: number | null
           sign_nbr_paper?: number | null
+          signature_end_date?: string | null
+          signature_start_date?: string | null
+          signatures_required?: number | null
           status?: string
+          title_de?: string | null
+          title_en?: string | null
+          title_fr?: string | null
           type?: string
           updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }

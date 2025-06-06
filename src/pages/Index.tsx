@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { usePetitions } from "@/hooks/usePetitions";
+import { usePetitions, useImportPetitions } from "@/hooks/usePetitions";
 import SwipeableStack from "@/components/SwipeableStack";
 import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,12 @@ const Index = () => {
   const [allPetitions, setAllPetitions] = useState<Petition[]>([]);
   const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
   const [hasMorePages, setHasMorePages] = useState(true);
+  const { importFromJson } = useImportPetitions();
 
-  // Convert language code to API format
-  const apiLanguage = language === 'fr' ? 'FR' : language === 'en' ? 'EN' : 'DE';
-  
   const { data: petitionsResponse, isLoading, error, refetch } = usePetitions({
     page: currentPage,
     size: 10,
-    language: apiLanguage
+    language: language.toUpperCase() // Keep for potential future filtering
   });
 
   // Update petitions when data loads
@@ -43,14 +41,14 @@ const Index = () => {
     }
   }, [petitionsResponse, currentPage]);
 
-  // Reset when language changes
+  // Reset when language changes (for potential future filtering)
   useEffect(() => {
-    console.log(`Language changed to: ${apiLanguage}, resetting pagination`);
+    console.log(`Language changed to: ${language}, resetting pagination`);
     setCurrentPage(0);
     setAllPetitions([]);
     setCurrentPetitions([]);
     setHasMorePages(true);
-  }, [apiLanguage]);
+  }, [language]);
 
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     console.log(`Swiped ${direction} on petition:`, petition.official_title);
@@ -66,6 +64,20 @@ const Index = () => {
     }
   };
 
+  const handleImportFromJson = async () => {
+    try {
+      await importFromJson();
+      // Refresh the data after import
+      setCurrentPage(0);
+      setAllPetitions([]);
+      setCurrentPetitions([]);
+      setHasMorePages(true);
+      refetch();
+    } catch (error) {
+      console.error('Import failed:', error);
+    }
+  };
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
@@ -73,9 +85,14 @@ const Index = () => {
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('error.title')}</h2>
             <p className="text-gray-600 mb-6">{t('error.description')}</p>
-            <Button onClick={() => refetch()}>
-              {t('error.retry')}
-            </Button>
+            <div className="space-x-4">
+              <Button onClick={() => refetch()}>
+                {t('error.retry')}
+              </Button>
+              <Button variant="outline" onClick={handleImportFromJson}>
+                Import from JSON
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -91,6 +108,9 @@ const Index = () => {
             <p className="text-lg text-gray-600">{t('app.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" onClick={handleImportFromJson}>
+              Import JSON
+            </Button>
             <LanguageSelector />
           </div>
         </div>
@@ -104,9 +124,12 @@ const Index = () => {
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('noPetitions.title')}</h2>
             <p className="text-gray-600 mb-6">{t('noPetitions.description')}</p>
-            <p className="text-sm text-gray-500">
-              The petitions are fetched directly from the Luxembourg government API in {apiLanguage}.
+            <p className="text-sm text-gray-500 mb-4">
+              Petitions are now stored locally in the database. You can import new data from a JSON file.
             </p>
+            <Button onClick={handleImportFromJson}>
+              Import Petitions from JSON
+            </Button>
           </div>
         ) : (
           <>

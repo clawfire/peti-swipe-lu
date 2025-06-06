@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Petition } from "@/types/petition";
 import { useToast } from "@/hooks/use-toast";
@@ -102,7 +101,6 @@ export const usePetitions = (params: PaginationParams = {}) => {
   });
 };
 
-// Hook for importing petitions from JSON file
 export const useImportPetitions = () => {
   const { toast } = useToast();
 

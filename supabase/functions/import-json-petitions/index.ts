@@ -133,10 +133,7 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
       association_role: getFieldValue(jsonData, 'associationRole', 'association_role') || null,
       association_name: getFieldValue(jsonData, 'associationName', 'association_name') || null,
       residency_country: residencyCountry,
-      purpose: getFieldValue(jsonData, 'goal', 'purpose') || null,
-      purpose_de: null,
-      purpose_en: null,
-      purpose_fr: getFieldValue(jsonData, 'goal', 'purpose') || null,
+      purpose: getFieldValue(jsonData, 'goal', 'purpose') || null, // Simplified to single purpose field
       signature_start_date: parseDate(getFieldValue(jsonData, 'signatureFrom', 'signatureStartDate', 'signature_start_date')),
       signature_end_date: parseDate(getFieldValue(jsonData, 'signatureTo', 'signatureEndDate', 'signature_end_date')),
       signatures_required: getFieldValue(jsonData, 'signaturesRequired', 'signatures_required') || null,

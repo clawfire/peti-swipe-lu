@@ -13,9 +13,6 @@ export interface Petition {
   association_name?: string | null;
   residency_country: string;
   purpose?: string | null;
-  purpose_de?: string | null;
-  purpose_en?: string | null;
-  purpose_fr?: string | null;
   signature_start_date?: string | null;
   signature_end_date?: string | null;
   signatures_required?: number | null;

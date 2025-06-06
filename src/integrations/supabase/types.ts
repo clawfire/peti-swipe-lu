@@ -79,9 +79,6 @@ export type Database = {
           official_title: string
           petition_nbr: number | null
           purpose: string | null
-          purpose_de: string | null
-          purpose_en: string | null
-          purpose_fr: string | null
           residency_country: string
           sign_nbr_electronic: number | null
           sign_nbr_paper: number | null
@@ -108,9 +105,6 @@ export type Database = {
           official_title: string
           petition_nbr?: number | null
           purpose?: string | null
-          purpose_de?: string | null
-          purpose_en?: string | null
-          purpose_fr?: string | null
           residency_country: string
           sign_nbr_electronic?: number | null
           sign_nbr_paper?: number | null
@@ -137,9 +131,6 @@ export type Database = {
           official_title?: string
           petition_nbr?: number | null
           purpose?: string | null
-          purpose_de?: string | null
-          purpose_en?: string | null
-          purpose_fr?: string | null
           residency_country?: string
           sign_nbr_electronic?: number | null
           sign_nbr_paper?: number | null

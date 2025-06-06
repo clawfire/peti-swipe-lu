@@ -1,33 +1,63 @@
-# Welcome to your Lovable project
+# 🧡 PETINDER – Swipe Your Way Into Democracy
 
-## Project info
+**PETINDER** is a playful prototype that reimagines civic engagement by turning Luxembourg’s public petition platform into a swipeable, mobile-friendly experience.  
+Built during a hackathon, this project was also an **experiment in coding with AI agents** to evaluate how far we can go with minimal manual intervention.
 
-**URL**: https://lovable.dev/projects/1540c93a-bcba-413b-a6c6-5f115779bf53
+## 🚀 What It Does
 
-## How can I edit this code?
+* Fetches and displays live petitions from the Chambre des Députés via a reverse-engineered API
+* Presents petitions in a Tinder-like UI for quick discovery
+* Enables users to swipe through and engage with active petitions
+* Uses localStorage to track interactions
+* Parses and serves cleaned JSON data via Edge Functions
 
-There are several ways of editing your application.
+## 🎯 What’s the Problem?
 
-**Use Lovable**
+Public petitions are powerful civic tools—but let’s be honest, they’re buried in clunky interfaces, feel a bit stark, and struggle to reach younger audiences.
+I wanted to test if a **Tinder-style interface**, built fast and mostly by AI, could make democratic engagement feel natural, quick… even fun.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1540c93a-bcba-413b-a6c6-5f115779bf53) and start prompting.
+## ⚙️ Tech Stack & Process
 
-Changes made via Lovable will be committed automatically to this repo.
+* 💅 Frontend Framework: Lovable.dev
+  * Vite
+  * TypeScript
+  * React
+  * shadcn-ui
+  * Tailwind CSS
+* 🧠 AI-driven development: 99% of the code was written by ChatGPT & GitHub Copilot
+* ✍️ Manual edits: A few quick fixes made in the IDE
+* 🌐 Data source: Unofficial API of the Chambre des Députés
+* 🧾 Edge function: Parses raw JSON and serves cleaned petition data
+* 💾 LocalStorage: Used to store swipe state without accounts or sessions
 
-**Use your preferred IDE**
+## 💡 Hackathon Context
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+This wasn’t just about building a cool civic tech tool.  
+It was about **testing what AI coding agents can accomplish** in a high-pressure, short-timeframe environment like a hackathon — versus the more structured, collaborative pace of traditional dev work.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+*	⏱️ ~2 hours to MVP
+* 🤖 AI wrote almost everything
+* 🧪 Experiment in AI-assisted software delivery
 
-Follow these steps:
+## 📱 Try It
+
+👉 [Live Demo](https://peti-swipe-lu.lovable.app/)
+
+## 🧠 Features
+
+* Swipe through petitions like you’re browsing a dating app
+* Simple UI optimized for mobile
+* Real-time(ish) data from the parliamentary site
+* Easy way to “engage on impulse” — no account required
+
+## 🛠 Usage (for devs)
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/clawfire/peti-swipe-lu.git
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd peti-swipe-lu
 
 # Step 3: Install the necessary dependencies.
 npm i
@@ -36,38 +66,19 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📦 Data Info
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+* Sources: https://www.petitiounen.lu/petition-web-back-for-front/petitions and https://data.public.lu/fr/datasets/la-liste-des-petitions/
+* Some fields missing (e.g., petition deadline) from the open dataset, so JSON is taken from the website unofficial API, cleaned and stored manually via an edge function
 
-**Use GitHub Codespaces**
+## 🤝 Reuse & Remix
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+All code is public. Fork it, remix it, or use it to build civic tech in your own country.
 
-## What technologies are used for this project?
+> public money = public code
 
-This project is built with:
+## ✨ Author
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/1540c93a-bcba-413b-a6c6-5f115779bf53) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+**Thibault Milan**  
+🔗 [thibaultmilan.com](https://thibaultmilan.com)  
+🦋 [@thibau.lt](https://bsky.app/profile/thibau.lt)

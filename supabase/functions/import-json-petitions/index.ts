@@ -86,6 +86,33 @@ const getFieldValue = (data: JsonPetitionData, ...fieldNames: string[]): any => 
   return null;
 };
 
+// Calculate signatures required based on filing date
+const calculateSignaturesRequired = (filingDate: string): number => {
+  try {
+    const filing = new Date(filingDate);
+    const marchFirst2025 = new Date('2025-03-01');
+    return filing < marchFirst2025 ? 4500 : 5500;
+  } catch {
+    return 5500; // Default to current threshold if date parsing fails
+  }
+};
+
+// Determine petition status based on signature count and threshold
+const determinePetitionStatus = (totalSignatures: number, signaturesRequired: number, originalStatus?: string): string => {
+  // If petition already has a closed status, keep it
+  if (originalStatus === 'CLOTUREE') {
+    return 'CLOTUREE';
+  }
+  
+  // Check if threshold is reached
+  if (totalSignatures >= signaturesRequired) {
+    return 'SEUIL_ATTEINT';
+  }
+  
+  // Default to signature collection in progress
+  return originalStatus || 'SIGNATURE_EN_COURS';
+};
+
 const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | null => {
   try {
     console.log(`Processing record ${index}:`, JSON.stringify(jsonData, null, 2));
@@ -114,35 +141,46 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
       console.warn(`Record ${index}: No valid filing date found, using current date as fallback`);
     }
 
+    // Get signature counts
+    const signElectronic = getFieldValue(jsonData, 'electronicalSignatureCount', 'electronicSignatures', 'electronic_signatures', 'sign_nbr_electronic') || 0;
+    const signPaper = getFieldValue(jsonData, 'paperSignatureCount', 'paperSignatures', 'paper_signatures', 'sign_nbr_paper') || 0;
+    const totalSignatures = signElectronic + signPaper;
+
+    // Calculate signatures required based on filing date
+    const signaturesRequired = calculateSignaturesRequired(parsedFilingDate);
+
+    // Get original status and determine final status
+    const originalStatus = getFieldValue(jsonData, 'status');
+    const finalStatus = determinePetitionStatus(totalSignatures, signaturesRequired, originalStatus);
+
     // Get other fields with fallbacks
     const type = getFieldValue(jsonData, 'type') || 'Unknown';
-    const status = getFieldValue(jsonData, 'status') || 'Unknown';
     const residencyCountry = getFieldValue(jsonData, 'residencyCountry', 'residency_country', 'country') || 'Luxembourg';
 
     // Build the petition object
     const petition = {
       external_id: getFieldValue(jsonData, 'id') || null,
-      petition_nbr: getFieldValue(jsonData, 'number', 'petitionNumber', 'petition_number', 'petition_nbr') || null, // Updated field order
+      petition_nbr: getFieldValue(jsonData, 'number', 'petitionNumber', 'petition_number', 'petition_nbr') || null,
       filing_date: parsedFilingDate,
       official_title: officialTitle,
       title: officialTitle, // Map to the single title field
       type: type,
-      status: status,
+      status: finalStatus, // Use calculated status
       association_role: getFieldValue(jsonData, 'associationRole', 'association_role') || null,
       association_name: getFieldValue(jsonData, 'associationName', 'association_name') || null,
       residency_country: residencyCountry,
-      purpose: getFieldValue(jsonData, 'goal', 'purpose') || null, // Simplified to single purpose field
+      purpose: getFieldValue(jsonData, 'goal', 'purpose') || null,
       signature_start_date: parseDate(getFieldValue(jsonData, 'signatureFrom', 'signatureStartDate', 'signature_start_date')),
       signature_end_date: parseDate(getFieldValue(jsonData, 'signatureTo', 'signatureEndDate', 'signature_end_date')),
-      signatures_required: getFieldValue(jsonData, 'signaturesRequired', 'signatures_required') || null,
-      sign_nbr_electronic: getFieldValue(jsonData, 'electronicalSignatureCount', 'electronicSignatures', 'electronic_signatures', 'sign_nbr_electronic') || 0, // Updated field order
-      sign_nbr_paper: getFieldValue(jsonData, 'paperSignatureCount', 'paperSignatures', 'paper_signatures', 'sign_nbr_paper') || 0, // Updated field order
+      signatures_required: signaturesRequired, // Set calculated signatures required
+      sign_nbr_electronic: signElectronic,
+      sign_nbr_paper: signPaper,
       motivation: getFieldValue(jsonData, 'motivation') || null,
       is_closed: getFieldValue(jsonData, 'isClosed', 'is_closed', 'closed') || false,
       url: getFieldValue(jsonData, 'url') || null,
     };
 
-    console.log(`Record ${index}: Successfully parsed petition:`, JSON.stringify(petition, null, 2));
+    console.log(`Record ${index}: Successfully parsed petition with ${totalSignatures}/${signaturesRequired} signatures, status: ${finalStatus}:`, JSON.stringify(petition, null, 2));
     return petition;
 
   } catch (error) {
@@ -226,17 +264,21 @@ serve(async (req) => {
     // Parse data
     const petitionsData: any[] = [];
     let errorCount = 0;
+    let thresholdReachedCount = 0;
 
     for (let i = 0; i < petitionsArray.length; i++) {
       const petition = mapJsonToPetition(petitionsArray[i], i + 1);
       if (petition) {
         petitionsData.push(petition);
+        if (petition.status === 'SEUIL_ATTEINT') {
+          thresholdReachedCount++;
+        }
       } else {
         errorCount++;
       }
     }
 
-    console.log(`Parsing completed: ${petitionsData.length} valid petitions, ${errorCount} errors`);
+    console.log(`Parsing completed: ${petitionsData.length} valid petitions, ${errorCount} errors, ${thresholdReachedCount} reached threshold`);
 
     if (petitionsData.length === 0) {
       throw new Error('No valid petition data found in JSON');
@@ -309,7 +351,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Import completed. Total petitions imported: ${insertedCount}, insert errors: ${insertErrors}`);
+    console.log(`Import completed. Total petitions imported: ${insertedCount}, insert errors: ${insertErrors}, petitions with threshold reached: ${thresholdReachedCount}`);
 
     return new Response(
       JSON.stringify({
@@ -319,7 +361,8 @@ serve(async (req) => {
         parsed: petitionsData.length,
         parseErrors: errorCount,
         imported: insertedCount,
-        insertErrors: insertErrors
+        insertErrors: insertErrors,
+        thresholdReached: thresholdReachedCount
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

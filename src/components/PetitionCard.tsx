@@ -51,6 +51,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
               signPaper={petition.sign_nbr_paper}
               status={petition.status}
               filingDate={petition.filing_date}
+              signaturesRequired={petition.signatures_required}
             />
           </div>
 

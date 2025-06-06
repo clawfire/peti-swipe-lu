@@ -22,8 +22,14 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
 
   const totalSignatures = (petition.sign_nbr_electronic || 0) + (petition.sign_nbr_paper || 0);
   
-  // Historical threshold logic: petitions filed before March 1, 2025 use 4500 threshold
+  // Use database signatures_required if available, otherwise calculate based on filing date
   const getThreshold = () => {
+    // Prefer database value
+    if (petition.signatures_required && petition.signatures_required > 0) {
+      return petition.signatures_required;
+    }
+    
+    // Fallback to historical threshold logic
     try {
       const filing = new Date(petition.filing_date);
       const marchFirst2025 = new Date('2025-03-01');

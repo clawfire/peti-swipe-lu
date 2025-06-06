@@ -7,14 +7,27 @@ interface PetitionCardSignaturesProps {
   signPaper?: number | null;
   status: string;
   filingDate: string;
+  signaturesRequired?: number | null; // Add signatures_required prop
 }
 
-const PetitionCardSignatures = ({ signElectronic, signPaper, status, filingDate }: PetitionCardSignaturesProps) => {
+const PetitionCardSignatures = ({ 
+  signElectronic, 
+  signPaper, 
+  status, 
+  filingDate, 
+  signaturesRequired 
+}: PetitionCardSignaturesProps) => {
   const { t } = useTranslation();
   const totalSignatures = (signElectronic || 0) + (signPaper || 0);
   
-  // Historical threshold logic: petitions filed before March 1, 2025 use 4500 threshold
+  // Use database signatures_required if available, otherwise calculate based on filing date
   const getThreshold = () => {
+    // Prefer database value
+    if (signaturesRequired && signaturesRequired > 0) {
+      return signaturesRequired;
+    }
+    
+    // Fallback to historical threshold logic
     try {
       const filing = new Date(filingDate);
       const marchFirst2025 = new Date('2025-03-01');

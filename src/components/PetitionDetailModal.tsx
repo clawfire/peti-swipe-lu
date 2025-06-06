@@ -72,6 +72,22 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
     return t(`status.${status}`) || status;
   };
 
+  // Helper function to format signature breakdown
+  const getSignatureBreakdown = () => {
+    const parts = [];
+    if (petition.sign_nbr_electronic && petition.sign_nbr_electronic > 0) {
+      parts.push(`${petition.sign_nbr_electronic.toLocaleString()} ${t('petition.electronic')}`);
+    }
+    if (petition.sign_nbr_paper && petition.sign_nbr_paper > 0) {
+      parts.push(`${petition.sign_nbr_paper.toLocaleString()} ${t('petition.paper')}`);
+    }
+    
+    if (parts.length === 0) {
+      return t('petition.noSignaturesYet');
+    }
+    
+    return parts.join(' • ');
+
   // Use official_title if available, otherwise fall back to title
   const displayTitle = petition.official_title || petition.title || '';
 
@@ -121,9 +137,7 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
                 ></div>
               </div>
               <div className="text-sm text-gray-500 mt-2">
-                {petition.sign_nbr_electronic && petition.sign_nbr_electronic > 0 && `${petition.sign_nbr_electronic.toLocaleString()} ${t('petition.electronic')}`}
-                {petition.sign_nbr_electronic && petition.sign_nbr_electronic > 0 && petition.sign_nbr_paper && petition.sign_nbr_paper > 0 && ' • '}
-                {petition.sign_nbr_paper && petition.sign_nbr_paper > 0 && `${petition.sign_nbr_paper.toLocaleString()} ${t('petition.paper')}`}
+                {getSignatureBreakdown()}
               </div>
             </div>
 

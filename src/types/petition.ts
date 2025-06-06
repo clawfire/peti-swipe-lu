@@ -27,4 +27,5 @@ export interface Petition {
   external_id?: string | null;
   created_at: string;
   updated_at: string;
+  goal?: string | null; // Add the goal field for compatibility
 }

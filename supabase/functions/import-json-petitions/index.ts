@@ -11,21 +11,13 @@ interface JsonPetitionData {
   id?: string;
   petitionNumber?: number;
   filingDate?: string;
-  officialTitle?: {
-    de?: string;
-    en?: string;
-    fr?: string;
-  };
+  officialTitle?: string;
   type?: string;
   status?: string;
   associationRole?: string;
   associationName?: string;
   residencyCountry?: string;
-  purpose?: {
-    de?: string;
-    en?: string;
-    fr?: string;
-  };
+  goal?: string;
   signatureStartDate?: string;
   signatureEndDate?: string;
   signaturesRequired?: number;
@@ -53,18 +45,13 @@ const parseDate = (dateStr: string | undefined): string | null => {
 const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | null => {
   try {
     // Validate required fields
-    if (!jsonData.officialTitle?.fr && !jsonData.officialTitle?.en && !jsonData.officialTitle?.de) {
+    if (!jsonData.officialTitle) {
       console.warn(`Record ${index}: Missing official title`);
       return null;
     }
 
     if (!jsonData.filingDate) {
       console.warn(`Record ${index}: Missing filing date`);
-      return null;
-    }
-
-    if (!jsonData.residencyCountry) {
-      console.warn(`Record ${index}: Missing residency country`);
       return null;
     }
 
@@ -89,19 +76,19 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
       external_id: jsonData.id || null,
       petition_nbr: jsonData.petitionNumber || null,
       filing_date: parsedFilingDate,
-      official_title: jsonData.officialTitle?.fr || jsonData.officialTitle?.en || jsonData.officialTitle?.de || '',
-      title_de: jsonData.officialTitle?.de || null,
-      title_en: jsonData.officialTitle?.en || null,
-      title_fr: jsonData.officialTitle?.fr || null,
+      official_title: jsonData.officialTitle,
+      title_de: null,
+      title_en: null,
+      title_fr: jsonData.officialTitle, // Use officialTitle as French title
       type: jsonData.type,
       status: jsonData.status,
       association_role: jsonData.associationRole || null,
       association_name: jsonData.associationName || null,
-      residency_country: jsonData.residencyCountry,
-      purpose: jsonData.purpose?.fr || jsonData.purpose?.en || jsonData.purpose?.de || null,
-      purpose_de: jsonData.purpose?.de || null,
-      purpose_en: jsonData.purpose?.en || null,
-      purpose_fr: jsonData.purpose?.fr || null,
+      residency_country: jsonData.residencyCountry || 'Luxembourg', // Default to Luxembourg if missing
+      purpose: jsonData.goal || null, // Map goal to purpose
+      purpose_de: null,
+      purpose_en: null,
+      purpose_fr: jsonData.goal || null, // Use goal as French purpose
       signature_start_date: parseDate(jsonData.signatureStartDate),
       signature_end_date: parseDate(jsonData.signatureEndDate),
       signatures_required: jsonData.signaturesRequired || null,

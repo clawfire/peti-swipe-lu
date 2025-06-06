@@ -58,13 +58,15 @@ export const usePetitions = (params: PaginationParams = {}) => {
           throw new Error(`Failed to fetch petitions: ${error.message}`);
         }
 
-        // Map database fields to interface (handle the renamed goal->purpose field)
+        // Map database fields to interface and add goal field for backward compatibility
         const mappedPetitions: Petition[] = (petitions || []).map(petition => ({
           ...petition,
           // Ensure all required fields have values
           petition_nbr: petition.petition_nbr || null,
           sign_nbr_electronic: petition.sign_nbr_electronic || 0,
           sign_nbr_paper: petition.sign_nbr_paper || 0,
+          // Map purpose to goal for backward compatibility
+          goal: petition.purpose || null,
         }));
 
         const response: PetitionsResponse = {

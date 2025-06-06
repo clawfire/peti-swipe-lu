@@ -19,7 +19,6 @@ const Index = () => {
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [hasMorePages, setHasMorePages] = useState(true);
   const [hasSwipedOnce, setHasSwipedOnce] = useState(false);
-  const [languageInitialized, setLanguageInitialized] = useState(false);
   const { importFromJson } = useImportPetitions();
 
   const { data: petitionsResponse, isLoading, error, refetch } = usePetitions({
@@ -27,13 +26,6 @@ const Index = () => {
     size: 10,
     language: language.toUpperCase()
   });
-
-  // Initialize language state to prevent reset on first load
-  useEffect(() => {
-    if (!languageInitialized) {
-      setLanguageInitialized(true);
-    }
-  }, [languageInitialized]);
 
   // Update petitions when data loads
   useEffect(() => {
@@ -55,17 +47,13 @@ const Index = () => {
     }
   }, [petitionsResponse, currentPage]);
 
-  // Only reset when language changes AND it's not the initial load
+  // Reset pagination when language changes (let React Query handle refetching)
   useEffect(() => {
-    if (languageInitialized) {
-      console.log(`Language changed to: ${language}, resetting pagination`);
-      setCurrentPage(0);
-      setAllPetitions([]);
-      setCurrentPetitions([]);
-      setLikedPetitions([]);
-      setHasMorePages(true);
-    }
-  }, [language, languageInitialized]);
+    console.log(`Language changed to: ${language}, resetting pagination`);
+    setCurrentPage(0);
+    setHasMorePages(true);
+    // Don't clear petitions immediately - let React Query handle the refetch
+  }, [language]);
 
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     console.log(`Swiped ${direction} on petition:`, petition.official_title);
@@ -116,8 +104,10 @@ const Index = () => {
     setLikedPetitions([]);
   };
 
-  // Check if database is empty (no petitions and not loading)
+  // Improved loading state logic - only show empty state if we have no data AND we're not loading
+  const isInitialLoading = isLoading && currentPetitions.length === 0 && currentPage === 0;
   const isDatabaseEmpty = !isLoading && (!petitionsResponse || petitionsResponse.petitions.length === 0) && currentPage === 0;
+  const hasNoPetitionsLeft = !isLoading && currentPetitions.length === 0 && currentPage > 0;
 
   if (error) {
     return (
@@ -153,7 +143,7 @@ const Index = () => {
           <LanguageSelector />
         </div>
 
-        {isLoading && currentPetitions.length === 0 ? (
+        {isInitialLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600">{t('loading.petitions')}</p>
@@ -169,7 +159,7 @@ const Index = () => {
               Import Petitions from JSON
             </Button>
           </div>
-        ) : !currentPetitions || currentPetitions.length === 0 ? (
+        ) : hasNoPetitionsLeft ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('noPetitions.title')}</h2>
             <p className="text-gray-600 mb-6">{t('noPetitions.description')}</p>

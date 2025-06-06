@@ -14,11 +14,26 @@ interface ResultsModalProps {
 }
 
 const ResultsModal = ({ open, onOpenChange, likedPetitions, onReset }: ResultsModalProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  
+  const getSignUrlPath = (lang: string) => {
+    switch (lang) {
+      case 'fr':
+        return 'signer';
+      case 'en':
+        return 'sign';
+      case 'de':
+        return 'unterschreiben';
+      default:
+        return 'signer';
+    }
+  };
   
   const handleSignPetition = (petitionNumber: number) => {
-    // Open petition page on petitions.lu
-    window.open(`https://petitions.lu/petition/${petitionNumber}`, '_blank');
+    // Construct URL based on selected language
+    const urlPath = getSignUrlPath(language);
+    const url = `https://www.petitiounen.lu/${language}/${urlPath}/${petitionNumber}`;
+    window.open(url, '_blank');
   };
 
   const handleResetAndClose = () => {

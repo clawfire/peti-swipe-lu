@@ -4,7 +4,9 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { usePetitions, useImportPetitions } from "@/hooks/usePetitions";
 import SwipeableStack from "@/components/SwipeableStack";
 import LanguageSelector from "@/components/LanguageSelector";
+import ResultsModal from "@/components/ResultsModal";
 import { Button } from "@/components/ui/button";
+import { Heart } from "lucide-react";
 import { Petition } from "@/types/petition";
 
 const Index = () => {
@@ -12,6 +14,8 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [allPetitions, setAllPetitions] = useState<Petition[]>([]);
   const [currentPetitions, setCurrentPetitions] = useState<Petition[]>([]);
+  const [likedPetitions, setLikedPetitions] = useState<Petition[]>([]);
+  const [showResultsModal, setShowResultsModal] = useState(false);
   const [hasMorePages, setHasMorePages] = useState(true);
   const { importFromJson } = useImportPetitions();
 
@@ -47,11 +51,23 @@ const Index = () => {
     setCurrentPage(0);
     setAllPetitions([]);
     setCurrentPetitions([]);
+    setLikedPetitions([]);
     setHasMorePages(true);
   }, [language]);
 
   const handleSwipe = (petition: Petition, direction: 'left' | 'right') => {
     console.log(`Swiped ${direction} on petition:`, petition.official_title);
+    
+    // If swiped right, add to liked petitions
+    if (direction === 'right') {
+      setLikedPetitions(prev => {
+        // Check if petition is already liked to avoid duplicates
+        if (prev.find(p => p.id === petition.id)) {
+          return prev;
+        }
+        return [...prev, petition];
+      });
+    }
     
     // Remove the swiped petition from the current list
     setCurrentPetitions(prev => prev.filter(p => p.id !== petition.id));
@@ -71,11 +87,16 @@ const Index = () => {
       setCurrentPage(0);
       setAllPetitions([]);
       setCurrentPetitions([]);
+      setLikedPetitions([]);
       setHasMorePages(true);
       refetch();
     } catch (error) {
       console.error('Import failed:', error);
     }
+  };
+
+  const handleResetLikedPetitions = () => {
+    setLikedPetitions([]);
   };
 
   if (error) {
@@ -108,6 +129,17 @@ const Index = () => {
             <p className="text-lg text-gray-600">{t('app.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
+            {likedPetitions.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowResultsModal(true)}
+                className="relative"
+              >
+                <Heart className="w-4 h-4 mr-2 text-pink-500 fill-pink-500" />
+                <span className="font-semibold">{likedPetitions.length}</span>
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={handleImportFromJson}>
               Import JSON
             </Button>
@@ -127,9 +159,21 @@ const Index = () => {
             <p className="text-sm text-gray-500 mb-4">
               Petitions are now stored locally in the database. You can import new data from a JSON file.
             </p>
-            <Button onClick={handleImportFromJson}>
-              Import Petitions from JSON
-            </Button>
+            {likedPetitions.length > 0 ? (
+              <div className="space-y-4">
+                <Button onClick={() => setShowResultsModal(true)}>
+                  <Heart className="w-4 h-4 mr-2 text-pink-500 fill-pink-500" />
+                  View {likedPetitions.length} Liked Petition{likedPetitions.length > 1 ? 's' : ''}
+                </Button>
+                <Button variant="outline" onClick={handleImportFromJson}>
+                  Import More Petitions from JSON
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={handleImportFromJson}>
+                Import Petitions from JSON
+              </Button>
+            )}
           </div>
         ) : (
           <>
@@ -144,6 +188,13 @@ const Index = () => {
             )}
           </>
         )}
+
+        <ResultsModal
+          open={showResultsModal}
+          onOpenChange={setShowResultsModal}
+          likedPetitions={likedPetitions}
+          onReset={handleResetLikedPetitions}
+        />
       </div>
     </div>
   );

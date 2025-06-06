@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -10,12 +9,14 @@ const corsHeaders = {
 interface JsonPetitionData {
   // Handle various possible field names from different JSON structures
   id?: string;
+  number?: number; // Updated to match actual JSON field
   petitionNumber?: number;
   petition_number?: number;
   petition_nbr?: number;
   filingDate?: string;
   filing_date?: string;
   date?: string;
+  depositDate?: string; // Added for deposit date
   officialTitle?: string;
   official_title?: string;
   title?: string;
@@ -32,13 +33,17 @@ interface JsonPetitionData {
   purpose?: string;
   signatureStartDate?: string;
   signature_start_date?: string;
+  signatureFrom?: string; // Added for signature start
   signatureEndDate?: string;
   signature_end_date?: string;
+  signatureTo?: string; // Added for signature end
   signaturesRequired?: number;
   signatures_required?: number;
+  electronicalSignatureCount?: number; // Updated to match actual JSON field
   electronicSignatures?: number;
   electronic_signatures?: number;
   sign_nbr_electronic?: number;
+  paperSignatureCount?: number; // Updated to match actual JSON field
   paperSignatures?: number;
   paper_signatures?: number;
   sign_nbr_paper?: number;
@@ -53,6 +58,14 @@ interface JsonPetitionData {
 const parseDate = (dateStr: string | undefined): string | null => {
   if (!dateStr || dateStr.trim() === '') {
     return null;
+  }
+  
+  // Handle ISO date strings with time
+  if (dateStr.includes('T')) {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+    }
   }
   
   // Handle various date formats
@@ -84,8 +97,8 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
       return null;
     }
 
-    // Get date from multiple possible field names - make it optional for now
-    const filingDateStr = getFieldValue(jsonData, 'filingDate', 'filing_date', 'date');
+    // Get date from multiple possible field names - try depositDate first, then others
+    const filingDateStr = getFieldValue(jsonData, 'depositDate', 'filingDate', 'filing_date', 'date');
     let parsedFilingDate = null;
     
     if (filingDateStr) {
@@ -109,7 +122,7 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
     // Build the petition object
     const petition = {
       external_id: getFieldValue(jsonData, 'id') || null,
-      petition_nbr: getFieldValue(jsonData, 'petitionNumber', 'petition_number', 'petition_nbr') || null,
+      petition_nbr: getFieldValue(jsonData, 'number', 'petitionNumber', 'petition_number', 'petition_nbr') || null, // Updated field order
       filing_date: parsedFilingDate,
       official_title: officialTitle,
       title_de: null,
@@ -124,11 +137,11 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
       purpose_de: null,
       purpose_en: null,
       purpose_fr: getFieldValue(jsonData, 'goal', 'purpose') || null,
-      signature_start_date: parseDate(getFieldValue(jsonData, 'signatureStartDate', 'signature_start_date')),
-      signature_end_date: parseDate(getFieldValue(jsonData, 'signatureEndDate', 'signature_end_date')),
+      signature_start_date: parseDate(getFieldValue(jsonData, 'signatureFrom', 'signatureStartDate', 'signature_start_date')),
+      signature_end_date: parseDate(getFieldValue(jsonData, 'signatureTo', 'signatureEndDate', 'signature_end_date')),
       signatures_required: getFieldValue(jsonData, 'signaturesRequired', 'signatures_required') || null,
-      sign_nbr_electronic: getFieldValue(jsonData, 'electronicSignatures', 'electronic_signatures', 'sign_nbr_electronic') || 0,
-      sign_nbr_paper: getFieldValue(jsonData, 'paperSignatures', 'paper_signatures', 'sign_nbr_paper') || 0,
+      sign_nbr_electronic: getFieldValue(jsonData, 'electronicalSignatureCount', 'electronicSignatures', 'electronic_signatures', 'sign_nbr_electronic') || 0, // Updated field order
+      sign_nbr_paper: getFieldValue(jsonData, 'paperSignatureCount', 'paperSignatures', 'paper_signatures', 'sign_nbr_paper') || 0, // Updated field order
       motivation: getFieldValue(jsonData, 'motivation') || null,
       is_closed: getFieldValue(jsonData, 'isClosed', 'is_closed', 'closed') || false,
       url: getFieldValue(jsonData, 'url') || null,

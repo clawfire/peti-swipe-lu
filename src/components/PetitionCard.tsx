@@ -21,13 +21,16 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
     setShowDetailModal(true);
   };
 
+  // Use official_title if available, otherwise fall back to title
+  const displayTitle = petition.official_title || petition.title || '';
+
   return (
     <>
       <Card className="w-80 bg-white shadow-xl rounded-2xl overflow-hidden">
         <div className="p-6 flex flex-col">
           {/* Title with better truncation */}
           <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight line-clamp-3">
-            {petition.official_title}
+            {displayTitle}
           </h2>
 
           {/* Content area */}
@@ -54,6 +57,7 @@ const PetitionCard = ({ petition }: PetitionCardProps) => {
           {/* Footer */}
           <div>
             <PetitionCardFooter 
+              signatureEndDate={petition.signature_end_date}
               filingDate={petition.filing_date} 
               petitionNumber={petition.petition_nbr}
             />

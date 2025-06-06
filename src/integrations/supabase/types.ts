@@ -86,9 +86,7 @@ export type Database = {
           signature_start_date: string | null
           signatures_required: number | null
           status: string
-          title_de: string | null
-          title_en: string | null
-          title_fr: string | null
+          title: string | null
           type: string
           updated_at: string
           url: string | null
@@ -112,9 +110,7 @@ export type Database = {
           signature_start_date?: string | null
           signatures_required?: number | null
           status: string
-          title_de?: string | null
-          title_en?: string | null
-          title_fr?: string | null
+          title?: string | null
           type: string
           updated_at?: string
           url?: string | null
@@ -138,9 +134,7 @@ export type Database = {
           signature_start_date?: string | null
           signatures_required?: number | null
           status?: string
-          title_de?: string | null
-          title_en?: string | null
-          title_fr?: string | null
+          title?: string | null
           type?: string
           updated_at?: string
           url?: string | null

@@ -72,6 +72,9 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
     return t(`status.${status}`) || status;
   };
 
+  // Use official_title if available, otherwise fall back to title
+  const displayTitle = petition.official_title || petition.title || '';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none border-none">
@@ -79,7 +82,7 @@ const PetitionDetailModal = ({ petition, open, onOpenChange }: PetitionDetailMod
           <div className="p-8">
             {/* Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-6 leading-tight">
-              {petition.official_title}
+              {displayTitle}
             </h1>
 
             {/* Signature Counter - Always Visible */}

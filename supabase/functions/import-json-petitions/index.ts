@@ -125,9 +125,7 @@ const mapJsonToPetition = (jsonData: JsonPetitionData, index: number): any | nul
       petition_nbr: getFieldValue(jsonData, 'number', 'petitionNumber', 'petition_number', 'petition_nbr') || null, // Updated field order
       filing_date: parsedFilingDate,
       official_title: officialTitle,
-      title_de: null,
-      title_en: null,
-      title_fr: officialTitle, // Use officialTitle as French title
+      title: officialTitle, // Map to the single title field
       type: type,
       status: status,
       association_role: getFieldValue(jsonData, 'associationRole', 'association_role') || null,

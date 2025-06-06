@@ -4,9 +4,7 @@ export interface Petition {
   petition_nbr?: number | null;
   filing_date: string;
   official_title: string;
-  title_de?: string | null;
-  title_en?: string | null;
-  title_fr?: string | null;
+  title?: string | null; // Renamed from title_fr, removed title_de and title_en
   type: string;
   status: string;
   association_role?: string | null;

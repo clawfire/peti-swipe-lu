@@ -1,37 +1,53 @@
 
 import { Calendar } from "lucide-react";
-import { differenceInDays, addDays, parseISO, isValid } from "date-fns";
+import { differenceInDays, parseISO, isValid } from "date-fns";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PetitionCardFooterProps {
+  signatureEndDate?: string | null;
   filingDate: string;
   petitionNumber: number;
 }
 
-const PetitionCardFooter = ({ filingDate, petitionNumber }: PetitionCardFooterProps) => {
+const PetitionCardFooter = ({ signatureEndDate, filingDate, petitionNumber }: PetitionCardFooterProps) => {
   const { t } = useTranslation();
   
-  const calculateRemainingDays = (dateString: string) => {
+  const calculateRemainingDays = (endDateString?: string | null, fallbackFilingDate?: string) => {
     try {
-      console.log('Original filing date string:', dateString);
+      let targetDate: Date;
       
-      // Parse the date string more reliably
-      const filing = parseISO(dateString);
-      console.log('Parsed filing date:', filing);
-      
-      if (!isValid(filing)) {
-        console.error('Invalid filing date:', dateString);
-        return 0;
+      // Use signature_end_date if available, otherwise calculate 42 days from filing_date
+      if (endDateString && endDateString.trim() !== '') {
+        console.log('Using signature end date:', endDateString);
+        targetDate = parseISO(endDateString);
+        
+        if (!isValid(targetDate)) {
+          console.warn('Invalid signature end date, falling back to filing date calculation');
+          const filing = parseISO(fallbackFilingDate || '');
+          if (!isValid(filing)) {
+            console.error('Invalid filing date:', fallbackFilingDate);
+            return 0;
+          }
+          // Add 42 days to filing date as fallback
+          targetDate = new Date(filing.getTime() + (42 * 24 * 60 * 60 * 1000));
+        }
+      } else {
+        console.log('No signature end date, calculating from filing date:', fallbackFilingDate);
+        const filing = parseISO(fallbackFilingDate || '');
+        if (!isValid(filing)) {
+          console.error('Invalid filing date:', fallbackFilingDate);
+          return 0;
+        }
+        // Add 42 days to filing date
+        targetDate = new Date(filing.getTime() + (42 * 24 * 60 * 60 * 1000));
       }
       
-      const deadline = addDays(filing, 42); // 6 weeks = 42 days
       const today = new Date();
       
-      console.log('Filing date:', filing.toISOString());
-      console.log('Deadline:', deadline.toISOString());
+      console.log('Target date:', targetDate.toISOString());
       console.log('Today:', today.toISOString());
       
-      const remainingDays = differenceInDays(deadline, today);
+      const remainingDays = differenceInDays(targetDate, today);
       console.log('Calculated remaining days:', remainingDays);
       
       return Math.max(0, remainingDays); // Don't show negative days
@@ -41,7 +57,7 @@ const PetitionCardFooter = ({ filingDate, petitionNumber }: PetitionCardFooterPr
     }
   };
 
-  const remainingDays = calculateRemainingDays(filingDate);
+  const remainingDays = calculateRemainingDays(signatureEndDate, filingDate);
 
   const getDisplayText = () => {
     if (remainingDays === 0) {
